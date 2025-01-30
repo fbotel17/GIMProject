@@ -16,6 +16,52 @@ class MedicamentRepository extends ServiceEntityRepository
         parent::__construct($registry, Medicament::class);
     }
 
+
+    public function findBySearchTerm(string $searchTerm, int $limit, int $offset)
+    {
+        return $this->createQueryBuilder('m')
+            ->where('m.nom LIKE :searchTerm OR m.codeCIS LIKE :searchTerm')
+            ->setParameter('searchTerm', '%' . $searchTerm . '%')
+            ->orderBy('m.id', 'DESC')
+            ->setMaxResults($limit)
+            ->setFirstResult($offset)
+            ->getQuery()
+            ->getResult();
+    }
+
+
+    public function countBySearchTerm(string $searchTerm)
+    {
+        return $this->createQueryBuilder('m')
+            ->select('count(m.id)')
+            ->where('m.nom LIKE :searchTerm')
+            ->setParameter('searchTerm', '%' . $searchTerm . '%')
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
+
+    public function findByCis(string $cis, int $limit, int $offset)
+    {
+        return $this->createQueryBuilder('m')
+            ->andWhere('m.cis = :cis')
+            ->setParameter('cis', $cis)
+            ->setFirstResult($offset)
+            ->setMaxResults($limit)
+            ->getQuery()
+            ->getResult();
+    }
+
+    public function countByCis(string $cis)
+    {
+        return $this->createQueryBuilder('m')
+            ->select('COUNT(m.id)')
+            ->andWhere('m.cis = :cis')
+            ->setParameter('cis', $cis)
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
+
+
     //    /**
     //     * @return Medicament[] Returns an array of Medicament objects
     //     */

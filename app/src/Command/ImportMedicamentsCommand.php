@@ -1,6 +1,5 @@
 <?php
 
-
 namespace App\Command;
 
 use App\Entity\Medicament;
@@ -30,8 +29,6 @@ class ImportMedicamentsCommand extends Command
         parent::__construct();
     }
 
-
-
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         ini_set('memory_limit', '1024M');
@@ -52,10 +49,14 @@ class ImportMedicamentsCommand extends Command
         $lineCount = 0;
 
         while (($line = fgets($file)) !== false) {
-            // Lire la ligne et convertir en UTF-8 si nécessaire
-            $line = mb_convert_encoding($line, 'UTF-8', 'Windows-1252'); // Si le fichier est dans un autre encodage
+            // Assure-toi que le fichier est déjà en UTF-8, donc aucune conversion n'est nécessaire.
+            // $line = mb_convert_encoding($line, 'UTF-8', 'Windows-1252');  // Enlève cette ligne.
+            $line = trim($line);  // Enlève les espaces inutiles.
 
-            $columns = explode("\t", trim($line));
+            // Afficher la ligne lue pour déboguer.
+            // $output->writeln("<info>Ligne lue : $line</info>");
+
+            $columns = explode("\t", $line);
 
             if (count($columns) < 9) {
                 $output->writeln("<error>Ligne ignorée (format incorrect) : $line</error>");
@@ -79,8 +80,22 @@ class ImportMedicamentsCommand extends Command
             }
             $medicament->setDateCommercialisation($dateCommercialisation);
 
-            $medicament->setFabricant($columns[8]);
+            // Vérifie si la colonne 8 contient "Warning disponibilité"
+            if (isset($columns[8]) && trim($columns[8]) === "Warning disponibilité") {
+                $possibleFabricant = trim($columns[10] ?? '');
+            } else {
+                $possibleFabricant = trim($columns[9] ?? '');
+            }
 
+            // Vérifie que ce n'est pas un code de type "EU/1/..."
+            if (preg_match('/^EU\/\d+\/\d+$/', $possibleFabricant)) {
+                $possibleFabricant = trim($columns[10] ?? ''); // Prendre la colonne suivante si c'est un code
+            }
+
+            // Assigne le fabricant final
+            $medicament->setFabricant($possibleFabricant);
+
+            // Ajouter la persistance de l'entité
             $this->entityManager->persist($medicament);
 
             $lineCount++;
@@ -94,7 +109,8 @@ class ImportMedicamentsCommand extends Command
 
         fclose($file);
 
-        $this->entityManager->flush(); // Sauvegarder le reste des entités
+        // Sauvegarder les dernières entités restantes
+        $this->entityManager->flush();
         $output->writeln("<info>Importation terminée. $lineCount lignes insérées.</info>");
 
         return Command::SUCCESS;

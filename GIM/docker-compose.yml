@@ -37,3 +37,16 @@ services:
     depends_on:
       - php
       - database
+
+  phpmyadmin:
+    container_name: phpmyadmin-GIM
+    image: phpmyadmin/phpmyadmin
+    platform: linux/x86_64
+    depends_on:
+      - database
+    restart: always
+    ports:
+      - '9098:80'
+    environment:
+      PMA_HOST: database
+      MYSQL_ROOT_PASSWORD: secret
