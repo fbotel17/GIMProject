@@ -17,17 +17,26 @@ class MedicamentRepository extends ServiceEntityRepository
     }
 
 
-    public function findBySearchTerm(string $searchTerm, int $limit, int $offset)
+    public function findBySearchTerm(string $searchTerm, array $cipData, int $limit, int $offset)
     {
-        return $this->createQueryBuilder('m')
+        $qb = $this->createQueryBuilder('m')
             ->where('m.nom LIKE :searchTerm OR m.codeCIS LIKE :searchTerm')
-            ->setParameter('searchTerm', '%' . $searchTerm . '%')
-            ->orderBy('m.id', 'DESC')
+            ->setParameter('searchTerm', '%' . $searchTerm . '%');
+
+        // Vérifier si le terme est un CIP et récupérer le CIS correspondant
+        if (isset($cipData[$searchTerm])) {
+            $cis = $cipData[$searchTerm];
+            $qb->orWhere('m.codeCIS = :cis')
+                ->setParameter('cis', $cis);
+        }
+
+        return $qb->orderBy('m.id', 'DESC')
             ->setMaxResults($limit)
             ->setFirstResult($offset)
             ->getQuery()
             ->getResult();
     }
+
 
 
     public function countBySearchTerm(string $searchTerm)

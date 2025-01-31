@@ -36,3 +36,28 @@
 		</div>
 	</div>
 </div>
+
+<!-- Modal pour ajouter un médicament à l'inventaire -->
+{% for medicament in medicaments %}
+	<div class="modal fade" id="modal-ajouter-{{ medicament.id }}" tabindex="-1" aria-labelledby="modal-ajouter-{{ medicament.id }}-Label" aria-hidden="true">
+		<div class="modal-dialog">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h5 class="modal-title" id="modal-ajouter-{{ medicament.id }}-Label">Ajouter
+						{{ medicament.nom }}
+						à l'inventaire</h5>
+					<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+				</div>
+				<div class="modal-body">
+					<form action="{{ path('medicament_ajouter', { 'id': medicament.id }) }}" method="post">
+						<div class="mb-3">
+							<label for="quantite" class="form-label">Quantité de boîtes</label>
+							<input type="number" class="form-control" id="quantite" name="quantite" required min="1" placeholder="Entrez la quantité">
+						</div>
+						<button type="submit" class="btn btn-primary">Ajouter à l'inventaire</button>
+					</form>
+				</div>
+			</div>
+		</div>
+	</div>
+{% endfor %}

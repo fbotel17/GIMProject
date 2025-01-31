@@ -2,6 +2,8 @@
 
 namespace App\Controller;
 
+use Spatie\PdfToText\Pdf;
+use App\Entity\Inventaire;
 use App\Entity\Medicament;
 use Symfony\Component\Process\Process;
 use App\Repository\MedicamentRepository;
@@ -16,7 +18,9 @@ use Symfony\Component\HttpKernel\KernelInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Console\Tester\CommandTester;
 use Symfony\Component\Console\Output\BufferedOutput;
+use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Smalot\PdfParser\Parser;
 
 class MedicamentController extends AbstractController
 {
@@ -33,34 +37,53 @@ class MedicamentController extends AbstractController
     #[Route('/medicament', name: 'app_medicament')]
     public function index(Request $request, MedicamentRepository $medicamentRepository): Response
     {
-        // Récupérer le terme de recherche s'il existe
         $searchTerm = $request->query->get('search', '');
-
-        // Le numéro de la page, avec une valeur par défaut de 1 si non spécifiée
         $page = $request->query->getInt('page', 1);
-
-        // Nombre d'éléments par page
         $limit = 25;
 
-        // Si un terme de recherche est spécifié, on filtre les résultats
+        // Lire et stocker les CIP à partir du PDF
+        $cipData = $this->getCipFromPdf();
+
         if ($searchTerm) {
-            $medicaments = $medicamentRepository->findBySearchTerm($searchTerm, $limit, ($page - 1) * $limit);
+            $medicaments = $medicamentRepository->findBySearchTerm($searchTerm, $cipData, $limit, ($page - 1) * $limit);
             $totalMedicaments = $medicamentRepository->countBySearchTerm($searchTerm);
         } else {
             $medicaments = $medicamentRepository->findBy([], ['id' => 'DESC'], $limit, ($page - 1) * $limit);
             $totalMedicaments = count($medicamentRepository->findAll());
         }
 
-        // Calcul du nombre total de pages
         $totalPages = ceil($totalMedicaments / $limit);
 
         return $this->render('medicament/index.html.twig', [
             'medicaments' => $medicaments,
             'totalPages' => $totalPages,
             'currentPage' => $page,
-            'searchTerm' => $searchTerm,  // On passe le terme de recherche à la vue
+            'searchTerm' => $searchTerm,
         ]);
     }
+
+
+    private function getCipFromPdf(): array
+    {
+        $parser = new Parser();
+        $pdf = $parser->parseFile($this->getParameter('kernel.project_dir') . '/public/liste-cip7-cip13-3.pdf');
+        $text = $pdf->getText();
+
+
+        preg_match_all('/(\d{8})\s+.*?\s+(\d{7})\s+(\d{13})/', $text, $matches, PREG_SET_ORDER);
+
+        $cipData = [];
+        foreach ($matches as $match) {
+            $cis = $match[1];
+            $cip7 = $match[2];
+            $cip13 = $match[3];
+            $cipData[$cip7] = $cis;
+            $cipData[$cip13] = $cis;
+        }
+
+        return $cipData;
+    }
+
 
     #[Route('/import-medicaments', name: 'import_medicaments')]
     public function importMedicaments(Request $request)
@@ -152,6 +175,40 @@ class MedicamentController extends AbstractController
 
         $this->addFlash('success', 'Tous les médicaments ont été supprimés.');
 
+
+        return $this->redirectToRoute('app_medicament');
+    }
+
+    #[Route('/medicament/{id}/ajouter', name: 'medicament_ajouter')]
+    public function ajouterInventaire(int $id, Request $request, MedicamentRepository $medicamentRepository, EntityManagerInterface $em, UserInterface $user): Response
+    {
+        // Récupérer le médicament par son ID
+        $medicament = $medicamentRepository->find($id);
+
+        if (!$medicament) {
+            $this->addFlash('error', 'Médicament non trouvé.');
+            return $this->redirectToRoute('app_medicament');
+        }
+
+        // Récupérer la quantité à ajouter depuis la requête
+        $quantite = $request->request->get('quantite');
+
+        if ($quantite <= 0) {
+            $this->addFlash('error', 'La quantité doit être un nombre positif.');
+            return $this->redirectToRoute('app_medicament');
+        }
+
+        // Créer un nouvel objet Inventaire
+        $inventaire = new Inventaire();
+        $inventaire->setUser($user);
+        $inventaire->setMedicament($medicament);
+        $inventaire->setQuantite($quantite);
+
+        // Enregistrer dans la base de données
+        $em->persist($inventaire);
+        $em->flush();
+
+        $this->addFlash('success', 'Médicament ajouté à l\'inventaire avec succès.');
 
         return $this->redirectToRoute('app_medicament');
     }
