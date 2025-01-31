@@ -2,7 +2,7 @@
 
 namespace App\Controller;
 
-use Spatie\PdfToText\Pdf;
+use GuzzleHttp\Client;
 use App\Entity\Inventaire;
 use App\Entity\Medicament;
 use Symfony\Component\Process\Process;
@@ -20,7 +20,6 @@ use Symfony\Component\Console\Tester\CommandTester;
 use Symfony\Component\Console\Output\BufferedOutput;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Smalot\PdfParser\Parser;
 
 class MedicamentController extends AbstractController
 {
@@ -37,51 +36,84 @@ class MedicamentController extends AbstractController
     #[Route('/medicament', name: 'app_medicament')]
     public function index(Request $request, MedicamentRepository $medicamentRepository): Response
     {
+        // Récupérer le terme de recherche s'il existe
         $searchTerm = $request->query->get('search', '');
+
+        // Le numéro de la page, avec une valeur par défaut de 1 si non spécifiée
         $page = $request->query->getInt('page', 1);
+
+        // Nombre d'éléments par page
         $limit = 25;
 
-        // Lire et stocker les CIP à partir du PDF
-        $cipData = $this->getCipFromPdf();
+        // Vérification si le terme de recherche est un CIP7 valide
+        if (preg_match('/^\d{7}$/', $searchTerm)) {
+            // Convertir le CIP7 en CIS via l'API GraphQL
+            $cis = $this->queryGraphQL($searchTerm);
 
-        if ($searchTerm) {
-            $medicaments = $medicamentRepository->findBySearchTerm($searchTerm, $cipData, $limit, ($page - 1) * $limit);
-            $totalMedicaments = $medicamentRepository->countBySearchTerm($searchTerm);
+            // Si aucun CIS n'est trouvé
+            if (!$cis) {
+                return $this->json(['error' => 'CIP non reconnu'], 404);
+            }
+
+
+            // Si un CIS est trouvé, on utilise le CIS pour effectuer la recherche dans la base de données
+            $medicaments = $medicamentRepository->findBySearchTerm($cis, $limit, ($page - 1) * $limit);
+            $totalMedicaments = $medicamentRepository->countBySearchTerm($cis);
         } else {
-            $medicaments = $medicamentRepository->findBy([], ['id' => 'DESC'], $limit, ($page - 1) * $limit);
-            $totalMedicaments = count($medicamentRepository->findAll());
+            // Recherche par nom ou codeCIS
+            $medicaments = $medicamentRepository->findBySearchTerm($searchTerm, $limit, ($page - 1) * $limit);
+            $totalMedicaments = $medicamentRepository->countBySearchTerm($searchTerm);
         }
 
+        // Calcul du nombre total de pages
         $totalPages = ceil($totalMedicaments / $limit);
 
         return $this->render('medicament/index.html.twig', [
             'medicaments' => $medicaments,
             'totalPages' => $totalPages,
             'currentPage' => $page,
-            'searchTerm' => $searchTerm,
+            'searchTerm' => $searchTerm,  // On passe le terme de recherche à la vue
         ]);
     }
 
-
-    private function getCipFromPdf(): array
+    // Méthode pour interroger l'API GraphQL et récupérer le CIS
+    private function queryGraphQL(string $cip7): ?string
     {
-        $parser = new Parser();
-        $pdf = $parser->parseFile($this->getParameter('kernel.project_dir') . '/public/liste-cip7-cip13-3.pdf');
-        $text = $pdf->getText();
+        $client = new Client();
+        $query = [
+            'query' => '
+            query {
+                presentations(CIP: ["' . $cip7 . '"]) {
+                    CIP7
+                    medicament {
+                        CIS
+                    }
+                }
+            }
+        '
+        ];
 
 
-        preg_match_all('/(\d{8})\s+.*?\s+(\d{7})\s+(\d{13})/', $text, $matches, PREG_SET_ORDER);
+        try {
+            // Effectuer l'appel à l'API GraphQL
+            $response = $client->post('http://host.docker.internal:4000/graphql', [
+                'json' => $query
+            ]);
 
-        $cipData = [];
-        foreach ($matches as $match) {
-            $cis = $match[1];
-            $cip7 = $match[2];
-            $cip13 = $match[3];
-            $cipData[$cip7] = $cis;
-            $cipData[$cip13] = $cis;
+            // Récupérer la réponse
+            $data = json_decode($response->getBody()->getContents(), true);
+
+            // Vérifier si le CIS est présent dans la réponse
+            if (isset($data['data']['presentations'][0]['medicament']['CIS'])) {
+                return $data['data']['presentations'][0]['medicament']['CIS'];
+            }
+
+            // Si aucun CIS n'est trouvé
+            return null;
+        } catch (\Exception $e) {
+            // Gérer les exceptions et erreurs
+            return $e;
         }
-
-        return $cipData;
     }
 
 
