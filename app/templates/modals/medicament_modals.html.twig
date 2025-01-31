@@ -1,0 +1,38 @@
+<!-- modals/medicament_modals.html.twig -->
+
+<!-- Modal de confirmation pour l'importation des médicaments -->
+	<div class="modal fade" id="importModal" tabindex="-1" aria-labelledby="importModalLabel" aria-hidden="true"> <div class="modal-dialog">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h5 class="modal-title" id="importModalLabel">Confirmation d'importation</h5>
+				<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+			</div>
+			<div class="modal-body">
+				Êtes-vous sûr de vouloir importer les médicaments ?
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+				<a href="{{ path('import_medicaments') }}" class="btn btn-primary">Confirmer</a>
+			</div>
+		</div>
+	</div>
+</div>
+
+<!-- Modal de confirmation pour la suppression des médicaments -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+	<div class="modal-dialog">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h5 class="modal-title" id="deleteModalLabel">Confirmation de suppression</h5>
+				<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+			</div>
+			<div class="modal-body">
+				Êtes-vous sûr de vouloir supprimer tous les médicaments ? Cette action est irréversible.
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+				<a href="{{ path('delete_medicaments') }}" class="btn btn-danger">Supprimer</a>
+			</div>
+		</div>
+	</div>
+</div>

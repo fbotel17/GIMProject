@@ -14,43 +14,24 @@
 		{% endfor %}
 	{% endfor %}
 
-	<div
-		class="d-flex justify-content-between mb-3">
-		<!-- Conteneur des boutons à gauche -->
+	<div class="d-flex justify-content-between mb-3">
 		<div class="d-flex">
-			<form method="get" action="{{ path('import_medicaments') }}" class="me-2">
-				<button id="import-button" class="btn btn-primary">Importer les médicaments</button>
-			</form>
-
-			<form method="get" action="{{ path('delete_medicaments') }}">
-				<button id="delete-button" class="btn btn-danger">Supprimer tous les médicaments</button>
-			</form>
+			<button id="import-button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#importModal">Importer les médicaments</button>
+			<button id="delete-button" class="btn btn-danger ms-2" data-bs-toggle="modal" data-bs-target="#deleteModal">Supprimer tous les médicaments</button>
 		</div>
-
-		<!-- Zone de recherche à droite -->
 		<form method="get" action="{{ path('app_medicament') }}" class="d-flex">
-			<div
-				class="search-container position-relative">
-				<!-- Formulaire parent avec flexbox -->
-				<div class="d-flex align-items-center w-100">
-					<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewbox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="search-icon feather feather-search">
-						<circle cx="11" cy="11" r="8"></circle>
-						<line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-					</svg>
-					<input class="form-control search-input ps-5" value="{{ searchTerm }}" type="search" name="search" placeholder="Rechercher un médicament par nom" aria-label="Search">
-					<button class="btn btn-search ms-auto" type="submit">Rechercher</button>
-				</div>
+			<div class="search-container position-relative d-flex align-items-center w-100">
+				<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewbox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="search-icon feather feather-search">
+					<circle cx="11" cy="11" r="8"></circle>
+					<line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+				</svg>
+				<input class="form-control search-input ps-5" value="{{ searchTerm }}" type="search" name="search" placeholder="Rechercher un médicament par nom" aria-label="Search">
+				<button class="btn btn-search ms-auto" type="submit">Rechercher</button>
 			</div>
 		</form>
 	</div>
 
-
-	<div
-		id="medicaments-table">
-
-		<!-- Formulaire de recherche -->
-
-
+	<div id="medicaments-table">
 		<table border="1">
 			<thead>
 				<tr>
@@ -83,30 +64,7 @@
 				{% endfor %}
 			</tbody>
 		</table>
+	</div>
 
-		<div>
-			{% if currentPage > 1 %}
-				<a href="{{ path('app_medicament', {page: currentPage - 1, search: searchTerm}) }}">Précédent</a>
-			{% endif %}
-
-			Page
-			{{ currentPage }}
-			sur
-			{{ totalPages }}
-
-			{% if currentPage < totalPages %}
-				<a href="{{ path('app_medicament', {page: currentPage + 1, search: searchTerm}) }}">Suivant</a>
-			{% endif %}
-		</div>
-
-		<div>
-			<form method="get" action="{{ path('app_medicament') }}">
-				<label for="page_select">Aller à la page:</label>
-				<select id="page_select" name="page" onchange="this.form.submit()">
-					{% for i in 1..totalPages %}
-						<option value="{{ i }}" {% if i == currentPage %} selected {% endif %}>{{ i }}</option>
-					{% endfor %}
-				</select>
-			</form>
-		</div>
-	{% endblock %}
+	{% include 'modals/medicament_modals.html.twig' %}
+{% endblock %}
