@@ -9,6 +9,7 @@ use Symfony\Component\Process\Process;
 use App\Repository\MedicamentRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use App\Command\ImportMedicamentsCommand;
+use App\Entity\Traitement;
 use Symfony\Component\Console\Application;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -46,7 +47,7 @@ class MedicamentController extends AbstractController
         $limit = 25;
 
         // Vérification si le terme de recherche est un CIP7 valide
-        if (preg_match('/^\d{7}$/', $searchTerm)) {
+        if (preg_match('/^\d{13}$/', $searchTerm)) {
             // Convertir le CIP7 en CIS via l'API GraphQL
             $cis = $this->queryGraphQL($searchTerm);
 
@@ -84,7 +85,7 @@ class MedicamentController extends AbstractController
             'query' => '
             query {
                 presentations(CIP: ["' . $cip7 . '"]) {
-                    CIP7
+                    CIP13
                     medicament {
                         CIS
                     }
@@ -195,11 +196,18 @@ class MedicamentController extends AbstractController
     {
         ini_set('memory_limit', '1024M');
 
+        $traitements = $this->entityManager->getRepository(Traitement::class)->findAll();
+
+
         $medicaments = $this->entityManager->getRepository(Medicament::class)->findAll();
 
         // Supprimer chaque médicament
         foreach ($medicaments as $medicament) {
             $this->entityManager->remove($medicament);
+        }
+
+        foreach ($traitements as $traitement) {
+            $this->entityManager->remove($traitement);
         }
 
         // Sauvegarder les changements

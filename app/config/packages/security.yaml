@@ -30,3 +30,4 @@ security:
 
   access_control:
     - { path: ^/admin, roles: ROLE_ADMIN }
+    - { path: ^/delete-medicaments, roles: ROLE_ADMIN }

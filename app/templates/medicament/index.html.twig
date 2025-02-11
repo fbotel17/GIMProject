@@ -58,11 +58,14 @@
 				</tbody>
 			</table>
 
-			<div class="d-flex">
-				<button id="delete-button" class="btn btn-danger ms-2" data-bs-toggle="modal" data-bs-target="#deleteModal">
-					Supprimer tous les médicaments
-				</button>
-			</div>
+			{% if app.user.roles == ['ROLE_ADMIN'] %}
+				<div class="d-flex">
+					<button id="delete-button" class="btn btn-danger ms-2" data-bs-toggle="modal" data-bs-target="#deleteModal">
+						Supprimer tous les médicaments
+					</button>
+				</div>
+			{% endif %}
+
 		</div>
 	{% else %}
 		<div class="alert alert-warning text-center p-4 mt-4" style="border: 2px dashed #ffc107; background-color: #fff3cd;">

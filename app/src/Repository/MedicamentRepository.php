@@ -22,7 +22,7 @@ class MedicamentRepository extends ServiceEntityRepository
         return $this->createQueryBuilder('m')
             ->where('m.nom LIKE :searchTerm OR m.codeCIS LIKE :searchTerm')
             ->setParameter('searchTerm', '%' . $searchTerm . '%')
-            ->orderBy('m.id', 'DESC')
+            ->orderBy('m.id')
             ->setMaxResults($limit)
             ->setFirstResult($offset)
             ->getQuery()

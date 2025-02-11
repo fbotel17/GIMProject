@@ -1,0 +1,41 @@
+{# modals/inventaire_modals.html.twig #}
+
+<!-- Modal de Consommation -->
+	<div class="modal fade" id="modalConsommation{{ item.id }}" tabindex="-1" aria-labelledby="modalConsommationLabel" aria-hidden="true"> <div class="modal-dialog">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h5 class="modal-title" id="modalConsommationLabel">Gérer la quantité de
+					{{ item.medicament.nom }}</h5>
+				<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+			</div>
+			<div
+				class="modal-body">
+				<!-- Affichage de la quantité actuelle -->
+				<p>
+					<strong>Quantité actuelle :</strong>
+					{{ item.quantite }}
+					boîtes</p>
+
+				<!-- Formulaire pour Soustraire -->
+				<form method="post" action="{{ path('consommer_inventaire', {'id': item.id}) }}">
+					<input type="hidden" name="_token" value="{{ csrf_token('consommer' ~ item.id) }}">
+					<div class="mb-3">
+						<label for="quantite_consommee" class="form-label">Boîtes consommées</label>
+						<input type="number" name="quantite_consommee" class="form-control" min="1" max="{{ item.quantite }}" required>
+					</div>
+					<button type="submit" class="btn btn-danger">Soustraire</button>
+				</form>
+
+				<!-- Formulaire pour Ajouter -->
+				<form method="post" action="{{ path('ajouter_inventaire', {'id': item.id}) }}">
+					<input type="hidden" name="_token" value="{{ csrf_token('ajouter' ~ item.id) }}">
+					<div class="mb-3">
+						<label for="quantite_ajoutee" class="form-label">Boîtes ajoutées</label>
+						<input type="number" name="quantite_ajoutee" class="form-control" min="1" required>
+					</div>
+					<button type="submit" class="btn btn-success">Ajouter</button>
+				</form>
+			</div>
+		</div>
+	</div>
+</div>
