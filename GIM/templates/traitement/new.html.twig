@@ -1,9 +1,30 @@
 {% extends 'base.html.twig' %}
 
 {% block body %}
-	<h1>Ajouter un Traitement</h1>
-	{{ form_start(form) }}
-	{{ form_widget(form) }}
-	<button class="btn">Ajouter</button>
-	{{ form_end(form) }}
+	<div class="container mt-5">
+		<h1 class="mb-4">Ajouter un Traitement</h1>
+		{{ form_start(form, {'attr': {'class': 'needs-validation', 'novalidate': 'novalidate'}}) }}
+		<div class="form-group">
+			{{ form_label(form.dateRenouvellement, 'Date de Renouvellement', {'label_attr': {'class': 'form-label'}}) }}
+
+			{{ form_widget(form.dateRenouvellement, {'attr': {'class': 'form-control'}}) }}
+		</div>
+		<div class="form-group">
+			{{ form_label(form.dose, 'Dose', {'label_attr': {'class': 'form-label'}}) }}
+
+			{{ form_widget(form.dose, {'attr': {'class': 'form-control'}}) }}
+		</div>
+		<div class="form-group">
+			{{ form_label(form.frequence, 'Fréquence', {'label_attr': {'class': 'form-label'}}) }}
+
+			{{ form_widget(form.frequence, {'attr': {'class': 'form-control'}}) }}
+		</div>
+		<div class="form-group form-check">
+			{{ form_label(form.actif, 'Actif', {'label_attr': {'class': 'form-check-label'}}) }}
+
+			{{ form_widget(form.actif, {'attr': {'class': 'form-check-input'}}) }}
+		</div>
+		<button type="submit" class="btn btn-primary mt-3">Ajouter</button>
+		{{ form_end(form) }}
+	</div>
 {% endblock %}

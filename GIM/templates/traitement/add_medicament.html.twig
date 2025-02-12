@@ -1,61 +1,78 @@
-{# templates/traitement/add_medicament.html.twig #}
 {% extends 'base.html.twig' %}
 
 {% block body %}
-	<h1>Ajouter un Médicament au Traitement
-		{{ traitement.id }}</h1>
+	<div class="container mt-5">
+		<h1 class="mb-4">Ajouter un Médicament au Traitement
+			{{ traitement.id }}</h1>
 
-	{% for label, messages in app.flashes %}
-		{% for message in messages %}
-			<div class="alert alert-{{ label }}">
-				{{ message }}
-			</div>
+		{% for label, messages in app.flashes %}
+			{% for message in messages %}
+				<div class="alert alert-{{ label }}">
+					{{ message }}
+				</div>
+			{% endfor %}
 		{% endfor %}
-	{% endfor %}
 
-	<form method="GET" action="{{ path('app_traitement_add_medicament', {id: traitement.id}) }}">
-		<input type="text" name="search" placeholder="Rechercher un médicament..." value="{{ searchTerm }}">
-		<button type="submit">Rechercher</button>
-	</form>
 
-	{% if medicaments is not empty %}
-		<h2>Résultats de la recherche</h2>
-		<form method="POST" action="{{ path('app_traitement_add_medicament', {id: traitement.id}) }}">
-			<ul>
-				{% for medicament in medicaments %}
-					<li>
-						<input type="radio" name="medicament_id" value="{{ medicament.id }}" id="medicament_{{ medicament.id }}">
-						<label for="medicament_{{ medicament.id }}">{{ medicament.nom }}</label>
-					</li>
-				{% endfor %}
-			</ul>
-			<button type="submit">Ajouter au traitement</button>
-		</form>
-
-		<!-- Pagination Simplifiée -->
-		<div class="pagination">
-			{% if currentPage > 1 %}
-				<a href="{{ path('app_traitement_add_medicament', {id: traitement.id, search: searchTerm, page: currentPage - 1}) }}">Précédent</a>
-			{% endif %}
-
-			<span>Page
-				{{ currentPage }}
-				sur
-				{{ totalPages }}</span>
-
-			{% if currentPage < totalPages %}
-				<a href="{{ path('app_traitement_add_medicament', {id: traitement.id, search: searchTerm, page: currentPage + 1}) }}">Suivant</a>
-			{% endif %}
-
-			<!-- Sauter à une page spécifique -->
-			<form method="GET" action="{{ path('app_traitement_add_medicament', {id: traitement.id}) }}" style="display:inline;">
-				<input type="hidden" name="search" value="{{ searchTerm }}">
-				<label for="page">Aller à la page :</label>
-				<input type="number" name="page" id="page" min="1" max="{{ totalPages }}" value="{{ currentPage }}">
-				<button type="submit">Aller</button>
+		<div class="d-flex justify-content-between mb-3">
+			<form method="get" action="{{ path('app_traitement_add_medicament', {id: traitement.id}) }}" class="d-flex">
+				<div class="search-container position-relative d-flex align-items-center w-100">
+					<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewbox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="search-icon feather feather-search">
+						<circle cx="11" cy="11" r="8"></circle>
+						<line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+					</svg>
+					<input class="form-control search-input ps-5" value="{{ searchTerm }}" type="search" name="search" placeholder="Rechercher un médicament par nom" aria-label="Search">
+					<button class="btn btn-search ms-auto" type="submit">Rechercher</button>
+				</div>
 			</form>
 		</div>
-	{% else %}
-		<p>Aucun médicament trouvé.</p>
-	{% endif %}
+
+		{% if medicaments is not empty %}
+			<h2 class="mb-3">Résultats de la recherche</h2>
+			<form method="POST" action="{{ path('app_traitement_add_medicament', {id: traitement.id}) }}">
+				<ul class="list-group mb-3">
+					{% for medicament in medicaments %}
+						<li class="list-group-item">
+							<input type="radio" name="medicament_id" value="{{ medicament.id }}" id="medicament_{{ medicament.id }}" class="form-check-input">
+							<label for="medicament_{{ medicament.id }}" class="form-check-label">{{ medicament.nom }}</label>
+						</li>
+					{% endfor %}
+				</ul>
+				<button type="submit" class="btn btn-success">Ajouter au traitement</button>
+			</form>
+
+			<!-- Pagination Simplifiée -->
+			<nav aria-label="Page navigation">
+				<ul class="pagination justify-content-center">
+					{% if currentPage > 1 %}
+						<li class="page-item">
+							<a class="page-link" href="{{ path('app_traitement_add_medicament', {id: traitement.id, search: searchTerm, page: currentPage - 1}) }}" aria-label="Previous">
+								<span aria-hidden="true">&laquo;</span>
+							</a>
+						</li>
+					{% endif %}
+
+					<li class="page-item d-flex align-items-center">
+						<form method="GET" action="{{ path('app_traitement_add_medicament', {id: traitement.id}) }}" class="form-inline d-flex align-items-center">
+							<input type="hidden" name="search" value="{{ searchTerm }}">
+							<label for="page" class="mr-2 mb-0">Page</label>
+							<input type="number" name="page" id="page" class="form-control mx-1" min="1" max="{{ totalPages }}" value="{{ currentPage }}" onchange="this.form.submit()" style="width: 60px;">
+							<span class="mx-1">sur
+								{{ totalPages }}</span>
+						</form>
+					</li>
+
+					{% if currentPage < totalPages %}
+						<li class="page-item">
+							<a class="page-link" href="{{ path('app_traitement_add_medicament', {id: traitement.id, search: searchTerm, page: currentPage + 1}) }}" aria-label="Next">
+								<span aria-hidden="true">&raquo;</span>
+							</a>
+						</li>
+					{% endif %}
+				</ul>
+			</nav>
+		{% else %}
+			<p>Aucun médicament trouvé.</p>
+		{% endif %}
+	</div>
 {% endblock %}

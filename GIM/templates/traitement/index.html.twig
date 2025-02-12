@@ -1,35 +1,51 @@
 {% extends 'base.html.twig' %}
 
 {% block body %}
-	<h1>Mes Traitements</h1>
+	<h1 class="mb-4">Mes Traitements</h1>
+
+	<!-- Bouton pour ajouter un nouveau traitement -->
+	<div class="mb-4">
+		<a href="{{ path('app_traitement_new') }}" class="btn btn-primary">Ajouter un nouveau traitement</a>
+	</div>
 
 	{% if traitements is empty %}
-		<p>Aucun traitement trouvé.</p>
+		<div class="alert alert-info">Aucun traitement trouvé.</div>
 	{% else %}
-		<ul>
+		<div class="row">
 			{% for traitement in traitements %}
-				<li>
-					<h2>Traitement
-						{{ traitement.id }}</h2>
-					<p>Date de renouvellement :
-						{{ traitement.dateRenouvellement ? traitement.dateRenouvellement|date('d/m/Y') : 'Non définie' }}</p>
-					<p>Dose :
-						{{ traitement.dose ? traitement.dose : 'Non définie' }}</p>
-					<p>Fréquence :
-						{{ traitement.frequence ? traitement.frequence : 'Non définie' }}</p>
-					<p>Actif :
-						{{ traitement.actif ? 'Oui' : 'Non' }}</p>
+				<div class="col-md-6">
+					<div class="card traitement-card">
+						<div class="card-body">
+							<h2 class="card-title">Traitement
+								{{ traitement.id }}</h2>
+							<p class="card-text">
+								<strong>Date de renouvellement :</strong>
+								{{ traitement.dateRenouvellement ? traitement.dateRenouvellement|date('d/m/Y') : 'Non définie' }}</p>
+							<p class="card-text">
+								<strong>Dose :</strong>
+								{{ traitement.dose ? traitement.dose : 'Non définie' }}</p>
+							<p class="card-text">
+								<strong>Fréquence :</strong>
+								{{ traitement.frequence ? traitement.frequence : 'Non définie' }}</p>
+							<p class="card-text">
+								<strong>Actif :</strong>
+								{{ traitement.actif ? 'Oui' : 'Non' }}</p>
 
-					<h3>Médicaments</h3>
-					<ul>
-						{% for medicament in traitement.medicaments %}
-							<li>{{ medicament.nom }}</li>
-						{% else %}
-							<li>Aucun médicament associé.</li>
-						{% endfor %}
-					</ul>
-				</li>
+							<h3 class="mt-3">Médicaments</h3>
+							<ul class="list-group">
+								{% for medicament in traitement.medicaments %}
+									<li class="list-group-item">{{ medicament.nom }}</li>
+								{% else %}
+									<li class="list-group-item">Aucun médicament associé.</li>
+								{% endfor %}
+							</ul>
+
+							<!-- Bouton pour ajouter un médicament à ce traitement -->
+							<a href="{{ path('app_traitement_add_medicament', {'id': traitement.id}) }}" class="btn btn-secondary mt-3">Ajouter un médicament</a>
+						</div>
+					</div>
+				</div>
 			{% endfor %}
-		</ul>
+		</div>
 	{% endif %}
 {% endblock %}
