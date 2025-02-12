@@ -238,11 +238,22 @@ class MedicamentController extends AbstractController
             return $this->redirectToRoute('app_medicament');
         }
 
-        // Créer un nouvel objet Inventaire
-        $inventaire = new Inventaire();
-        $inventaire->setUser($user);
-        $inventaire->setMedicament($medicament);
-        $inventaire->setQuantite($quantite);
+        // Vérifier si le médicament existe déjà dans l'inventaire de l'utilisateur
+        $inventaire = $em->getRepository(Inventaire::class)->findOneBy([
+            'user' => $user,
+            'medicament' => $medicament,
+        ]);
+
+        if ($inventaire) {
+            // Si le médicament existe, mettre à jour la quantité
+            $inventaire->setQuantite($inventaire->getQuantite() + $quantite);
+        } else {
+            // Sinon, créer un nouvel objet Inventaire
+            $inventaire = new Inventaire();
+            $inventaire->setUser($user);
+            $inventaire->setMedicament($medicament);
+            $inventaire->setQuantite($quantite);
+        }
 
         // Enregistrer dans la base de données
         $em->persist($inventaire);
