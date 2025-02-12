@@ -1,0 +1,35 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+	<h1>Mes Traitements</h1>
+
+	{% if traitements is empty %}
+		<p>Aucun traitement trouvé.</p>
+	{% else %}
+		<ul>
+			{% for traitement in traitements %}
+				<li>
+					<h2>Traitement
+						{{ traitement.id }}</h2>
+					<p>Date de renouvellement :
+						{{ traitement.dateRenouvellement ? traitement.dateRenouvellement|date('d/m/Y') : 'Non définie' }}</p>
+					<p>Dose :
+						{{ traitement.dose ? traitement.dose : 'Non définie' }}</p>
+					<p>Fréquence :
+						{{ traitement.frequence ? traitement.frequence : 'Non définie' }}</p>
+					<p>Actif :
+						{{ traitement.actif ? 'Oui' : 'Non' }}</p>
+
+					<h3>Médicaments</h3>
+					<ul>
+						{% for medicament in traitement.medicaments %}
+							<li>{{ medicament.nom }}</li>
+						{% else %}
+							<li>Aucun médicament associé.</li>
+						{% endfor %}
+					</ul>
+				</li>
+			{% endfor %}
+		</ul>
+	{% endif %}
+{% endblock %}

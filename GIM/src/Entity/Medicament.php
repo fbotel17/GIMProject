@@ -3,6 +3,8 @@
 namespace App\Entity;
 
 use App\Repository\MedicamentRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
@@ -41,11 +43,21 @@ class Medicament
     #[ORM\Column(length: 500, nullable: true)]
     private ?string $fabricant = null;
 
-    #[ORM\OneToMany(mappedBy: "medicament", targetEntity: "App\Entity\Traitement")]
-    private $traitements;
+    
 
     #[ORM\OneToMany(mappedBy: "medicament", targetEntity: "App\Entity\Inventaire")]
     private $inventaires;
+
+    /**
+     * @var Collection<int, Traitement>
+     */
+    #[ORM\ManyToMany(targetEntity: Traitement::class, mappedBy: 'medicaments')]
+    private Collection $traitements;
+
+    public function __construct()
+    {
+        $this->traitements = new ArrayCollection();
+    }
 
     public function getId(): ?int
     {
@@ -160,13 +172,37 @@ class Medicament
         return $this;
     }
 
-    public function getTraitements()
-    {
-        return $this->traitements;
-    }
+    
 
     public function getInventaires()
     {
         return $this->inventaires;
+    }
+
+    /**
+     * @return Collection<int, Traitement>
+     */
+    public function getTraitements(): Collection
+    {
+        return $this->traitements;
+    }
+
+    public function addTraitement(Traitement $traitement): static
+    {
+        if (!$this->traitements->contains($traitement)) {
+            $this->traitements->add($traitement);
+            $traitement->addMedicament($this);
+        }
+
+        return $this;
+    }
+
+    public function removeTraitement(Traitement $traitement): static
+    {
+        if ($this->traitements->removeElement($traitement)) {
+            $traitement->removeMedicament($this);
+        }
+
+        return $this;
     }
 }

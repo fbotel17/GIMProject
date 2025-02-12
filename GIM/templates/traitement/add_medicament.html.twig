@@ -1,0 +1,61 @@
+{# templates/traitement/add_medicament.html.twig #}
+{% extends 'base.html.twig' %}
+
+{% block body %}
+	<h1>Ajouter un Médicament au Traitement
+		{{ traitement.id }}</h1>
+
+	{% for label, messages in app.flashes %}
+		{% for message in messages %}
+			<div class="alert alert-{{ label }}">
+				{{ message }}
+			</div>
+		{% endfor %}
+	{% endfor %}
+
+	<form method="GET" action="{{ path('app_traitement_add_medicament', {id: traitement.id}) }}">
+		<input type="text" name="search" placeholder="Rechercher un médicament..." value="{{ searchTerm }}">
+		<button type="submit">Rechercher</button>
+	</form>
+
+	{% if medicaments is not empty %}
+		<h2>Résultats de la recherche</h2>
+		<form method="POST" action="{{ path('app_traitement_add_medicament', {id: traitement.id}) }}">
+			<ul>
+				{% for medicament in medicaments %}
+					<li>
+						<input type="radio" name="medicament_id" value="{{ medicament.id }}" id="medicament_{{ medicament.id }}">
+						<label for="medicament_{{ medicament.id }}">{{ medicament.nom }}</label>
+					</li>
+				{% endfor %}
+			</ul>
+			<button type="submit">Ajouter au traitement</button>
+		</form>
+
+		<!-- Pagination Simplifiée -->
+		<div class="pagination">
+			{% if currentPage > 1 %}
+				<a href="{{ path('app_traitement_add_medicament', {id: traitement.id, search: searchTerm, page: currentPage - 1}) }}">Précédent</a>
+			{% endif %}
+
+			<span>Page
+				{{ currentPage }}
+				sur
+				{{ totalPages }}</span>
+
+			{% if currentPage < totalPages %}
+				<a href="{{ path('app_traitement_add_medicament', {id: traitement.id, search: searchTerm, page: currentPage + 1}) }}">Suivant</a>
+			{% endif %}
+
+			<!-- Sauter à une page spécifique -->
+			<form method="GET" action="{{ path('app_traitement_add_medicament', {id: traitement.id}) }}" style="display:inline;">
+				<input type="hidden" name="search" value="{{ searchTerm }}">
+				<label for="page">Aller à la page :</label>
+				<input type="number" name="page" id="page" min="1" max="{{ totalPages }}" value="{{ currentPage }}">
+				<button type="submit">Aller</button>
+			</form>
+		</div>
+	{% else %}
+		<p>Aucun médicament trouvé.</p>
+	{% endif %}
+{% endblock %}

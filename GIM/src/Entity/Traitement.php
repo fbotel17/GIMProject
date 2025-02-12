@@ -3,6 +3,8 @@
 namespace App\Entity;
 
 use App\Repository\TraitementRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
@@ -30,9 +32,18 @@ class Traitement
     #[ORM\JoinColumn(nullable: false)]
     private ?User $user = null;
 
-    #[ORM\ManyToOne(targetEntity: "App\Entity\Medicament", inversedBy: "traitements")]
-    #[ORM\JoinColumn(nullable: false)]
-    private ?Medicament $medicament = null;
+    /**
+     * @var Collection<int, Medicament>
+     */
+    #[ORM\ManyToMany(targetEntity: Medicament::class, inversedBy: 'traitements')]
+    private Collection $medicaments;
+
+    public function __construct()
+    {
+        $this->medicaments = new ArrayCollection();
+    }
+
+    
 
     public function getId(): ?int
     {
@@ -98,14 +109,29 @@ class Traitement
         return $this;
     }
 
-    public function getMedicament(): ?Medicament
+    /**
+     * @return Collection<int, Medicament>
+     */
+    public function getMedicaments(): Collection
     {
-        return $this->medicament;
+        return $this->medicaments;
     }
 
-    public function setMedicament(?Medicament $medicament): self
+    public function addMedicament(Medicament $medicament): static
     {
-        $this->medicament = $medicament;
+        if (!$this->medicaments->contains($medicament)) {
+            $this->medicaments->add($medicament);
+        }
+
         return $this;
     }
+
+    public function removeMedicament(Medicament $medicament): static
+    {
+        $this->medicaments->removeElement($medicament);
+
+        return $this;
+    }
+
+    
 }
