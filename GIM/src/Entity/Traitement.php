@@ -43,7 +43,7 @@ class Traitement
         $this->medicaments = new ArrayCollection();
     }
 
-    
+
 
     public function getId(): ?int
     {
@@ -133,5 +133,14 @@ class Traitement
         return $this;
     }
 
-    
+    public function deduireMedicaments(): void
+    {
+        if ($this->actif) {
+            foreach ($this->medicaments as $medicament) {
+                $stockRestant = $medicament->getStock();
+                $nouveauStock = max(0, $stockRestant - $this->dose); // Empêcher un stock négatif
+                $medicament->setStock($nouveauStock);
+            }
+        }
+    }
 }

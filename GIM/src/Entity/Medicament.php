@@ -43,10 +43,15 @@ class Medicament
     #[ORM\Column(length: 500, nullable: true)]
     private ?string $fabricant = null;
 
-    
+
 
     #[ORM\OneToMany(mappedBy: "medicament", targetEntity: "App\Entity\Inventaire")]
     private $inventaires;
+
+    #[ORM\Column(type: "integer")]
+    private int $stock;
+
+
 
     /**
      * @var Collection<int, Traitement>
@@ -172,7 +177,7 @@ class Medicament
         return $this;
     }
 
-    
+
 
     public function getInventaires()
     {
@@ -203,6 +208,17 @@ class Medicament
             $traitement->removeMedicament($this);
         }
 
+        return $this;
+    }
+
+    public function getStock(): int
+    {
+        return $this->stock;
+    }
+
+    public function setStock(int $stock): self
+    {
+        $this->stock = $stock;
         return $this;
     }
 }

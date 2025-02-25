@@ -14,6 +14,8 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Doctrine\Common\Collections\Collection;
+
 
 class TraitementController extends AbstractController
 {
@@ -31,7 +33,6 @@ class TraitementController extends AbstractController
     #[Route('/traitement/new', name: 'app_traitement_new', methods: ['GET', 'POST'])]
     public function new(Request $request, EntityManagerInterface $entityManager): Response
     {
-
         $traitement = new Traitement();
         $form = $this->createForm(TraitementType::class, $traitement);
         $form->handleRequest($request);
@@ -39,16 +40,56 @@ class TraitementController extends AbstractController
         if ($form->isSubmitted() && $form->isValid()) {
             $traitement->setUser($this->getUser());
 
+            $dateRenouvellement = $traitement->getDateRenouvellement();
+            $jourRestant = $dateRenouvellement ? $dateRenouvellement->diff(new \DateTime())->days : 0;
+
+            $frequence = $traitement->getFrequence();
+            $dose = $traitement->getDose();
+            $totalDose = 0;
+
+            if ($frequence && $dose) {
+                if ($frequence === 'jour') {
+                    $totalDose = $jourRestant * $dose;
+                } elseif ($frequence === 'semaine') {
+                    $totalDose = ceil($jourRestant / 7) * $dose;
+                }
+
+                if ($this->checkInventory($traitement->getMedicaments(), $totalDose, $entityManager)) {
+                    $traitement->setActif(true);
+                    $traitement->deduireMedicaments(); // Déduire les médicaments si le traitement est actif
+                } else {
+                    $traitement->setActif(false);
+                    $this->addFlash('error', 'Médicaments insuffisants dans l\'inventaire');
+                }
+            }
+
             $entityManager->persist($traitement);
             $entityManager->flush();
 
             return $this->redirectToRoute('app_traitement');
         }
 
+
         return $this->render('traitement/new.html.twig', [
             'form' => $form->createView(),
         ]);
     }
+
+    // Vérification de l'inventaire
+    private function checkInventory(Collection $medicaments, int $totalDose, EntityManagerInterface $entityManager): bool
+    {
+        $inventoryRepository = $entityManager->getRepository(Medicament::class);
+
+        foreach ($medicaments as $medicament) {
+            $inventory = $inventoryRepository->findOneBy(['id' => $medicament->getId()]);
+            if ($inventory && $inventory->getStock() < $totalDose) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+
 
     #[Route('/traitement/{id}/add-medicament', name: 'app_traitement_add_medicament', methods: ['GET', 'POST'])]
     public function addMedicament(Traitement $traitement, Request $request, EntityManagerInterface $entityManager, MedicamentRepository $medicamentRepository): Response
