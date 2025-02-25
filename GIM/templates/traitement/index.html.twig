@@ -8,11 +8,12 @@
 		<a href="{{ path('app_traitement_new') }}" class="btn btn-primary">Ajouter un nouveau traitement</a>
 	</div>
 
-	{% if traitements is empty %}
+	{% if traitementsData is empty %}
 		<div class="alert alert-info">Aucun traitement trouvé.</div>
 	{% else %}
 		<div class="row">
-			{% for traitement in traitements %}
+			{% for data in traitementsData %}
+				{% set traitement = data.traitement %}
 				<div class="col-md-6">
 					<div class="card traitement-card">
 						<div class="card-body">
@@ -28,8 +29,13 @@
 								<strong>Fréquence :</strong>
 								{{ traitement.frequence ? traitement.frequence : 'Non définie' }}</p>
 							<p class="card-text">
-								<strong>Actif :</strong>
-								{{ traitement.actif ? 'Oui' : 'Non' }}</p>
+								<form action="{{ path('app_traitement_toggle_actif', {'id': traitement.id}) }}" method="post" style="display:inline;">
+									<button type="submit" class="btn btn-link p-0" {% if not data.canToggleActif %} disabled {% endif %}>
+										<input type="checkbox" {% if traitement.actif %} checked {% endif %} onclick="this.form.submit()" {% if not data.canToggleActif %} disabled {% endif %}>
+										Actif
+									</button>
+								</form>
+							</p>
 
 							<h3 class="mt-3">Médicaments</h3>
 							<ul class="list-group">
@@ -42,6 +48,14 @@
 
 							<!-- Bouton pour ajouter un médicament à ce traitement -->
 							<a href="{{ path('app_traitement_add_medicament', {'id': traitement.id}) }}" class="btn btn-secondary mt-3">Ajouter un médicament</a>
+
+							<!-- Formulaire pour supprimer le traitement -->
+							<form action="{{ path('app_traitement_delete', {'id': traitement.id}) }}" method="post" style="display:inline;">
+								<button type="submit" class="btn btn-danger mt-3" onclick="return confirm('Êtes-vous sûr de vouloir supprimer ce traitement ?')">
+									<i class="fas fa-trash"></i>
+									Supprimer
+								</button>
+							</form>
 						</div>
 					</div>
 				</div>

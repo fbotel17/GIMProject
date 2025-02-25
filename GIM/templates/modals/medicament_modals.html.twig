@@ -51,8 +51,21 @@
 				<div class="modal-body">
 					<form action="{{ path('medicament_ajouter', { 'id': medicament.id }) }}" method="post">
 						<div class="mb-3">
-							<label for="quantite" class="form-label">Quantité de boîtes</label>
-							<input type="number" class="form-control" id="quantite" name="quantite" required min="1" placeholder="Entrez la quantité">
+							<label for="typeAjout" class="form-label">Type d'ajout</label>
+							<select class="form-select" id="typeAjout" name="typeAjout" required>
+								<option value="boites_pleines">Boîtes pleines</option>
+								<option value="boite_entamee">Boîte entamée</option>
+							</select>
+						</div>
+						<div id="boitesPleines" class="mb-3">
+							<label for="nbBoitesPleines" class="form-label">Nombre de boîtes pleines</label>
+							<input type="number" class="form-control" id="nbBoitesPleines" name="nbBoitesPleines" min="0" placeholder="Entrez le nombre de boîtes pleines">
+							<label for="pillulesParBoite" class="form-label">Nombre de médicaments par boite pleine</label>
+							<input type="number" class="form-control" id="pillulesParBoite" name="pillulesParBoite" min="1" placeholder="Entrez le nombre de pillules par boîte pleine">
+						</div>
+						<div id="boiteEntamee" class="mb-3" style="display:none;">
+							<label for="quantitePillules" class="form-label">Quantité de médicaments dans la boîte entamée</label>
+							<input type="number" class="form-control" id="quantitePillules" name="quantitePillules" min="1" placeholder="Entrez la quantité de médicaments">
 						</div>
 						<button type="submit" class="btn btn-primary">Ajouter à l'inventaire</button>
 					</form>
@@ -61,3 +74,17 @@
 		</div>
 	</div>
 {% endfor %}
+
+<script>
+	document.getElementById('typeAjout').addEventListener('change', function () {
+var boitesPleines = document.getElementById('boitesPleines');
+var boiteEntamee = document.getElementById('boiteEntamee');
+if (this.value === 'boitesPleines') {
+boitesPleines.style.display = 'block';
+boiteEntamee.style.display = 'none';
+} else {
+boitesPleines.style.display = 'none';
+boiteEntamee.style.display = 'block';
+}
+});
+</script>

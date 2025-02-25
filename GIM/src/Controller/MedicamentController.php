@@ -222,7 +222,6 @@ class MedicamentController extends AbstractController
     #[Route('/medicament/{id}/ajouter', name: 'medicament_ajouter')]
     public function ajouterInventaire(int $id, Request $request, MedicamentRepository $medicamentRepository, EntityManagerInterface $em, UserInterface $user): Response
     {
-        // Récupérer le médicament par son ID
         $medicament = $medicamentRepository->find($id);
 
         if (!$medicament) {
@@ -230,32 +229,43 @@ class MedicamentController extends AbstractController
             return $this->redirectToRoute('app_medicament');
         }
 
-        // Récupérer la quantité à ajouter depuis la requête
-        $quantite = $request->request->get('quantite');
+        $typeAjout = $request->request->get('typeAjout');
+        $quantite = 0;
+        $nbBoite = 0; // Initialiser à 0 par défaut
+
+        if ($typeAjout === 'boites_pleines') {
+            $nbBoitesPleines = $request->request->get('nbBoitesPleines');
+            $pillulesParBoite = $request->request->get('pillulesParBoite');
+            if ($nbBoitesPleines > 0 && $pillulesParBoite > 0) {
+                $quantite = $nbBoitesPleines * $pillulesParBoite;
+                $nbBoite = $nbBoitesPleines; // Mettre à jour le nombre de boîtes
+            }
+        } elseif ($typeAjout === 'boite_entamee') {
+            $quantite = $request->request->get('quantitePillules');
+            $nbBoite = 1;
+        }
 
         if ($quantite <= 0) {
             $this->addFlash('error', 'La quantité doit être un nombre positif.');
             return $this->redirectToRoute('app_medicament');
         }
 
-        // Vérifier si le médicament existe déjà dans l'inventaire de l'utilisateur
         $inventaire = $em->getRepository(Inventaire::class)->findOneBy([
             'user' => $user,
             'medicament' => $medicament,
         ]);
 
         if ($inventaire) {
-            // Si le médicament existe, mettre à jour la quantité
             $inventaire->setQuantite($inventaire->getQuantite() + $quantite);
+            $inventaire->setNbBoite($inventaire->getNbBoite() + $nbBoite); // Mettre à jour le nombre de boîtes
         } else {
-            // Sinon, créer un nouvel objet Inventaire
             $inventaire = new Inventaire();
             $inventaire->setUser($user);
             $inventaire->setMedicament($medicament);
             $inventaire->setQuantite($quantite);
+            $inventaire->setNbBoite($nbBoite); // Définir le nombre de boîtes
         }
 
-        // Enregistrer dans la base de données
         $em->persist($inventaire);
         $em->flush();
 

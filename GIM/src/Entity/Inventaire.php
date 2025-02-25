@@ -24,6 +24,22 @@ class Inventaire
     #[ORM\JoinColumn(nullable: false)]
     private ?Medicament $medicament = null;
 
+    #[ORM\Column]
+    private ?int $nbBoite = null;
+
+    public function getNbBoite(): ?int
+    {
+        return $this->nbBoite;
+    }
+
+    public function setNbBoite(int $nbBoite): static
+    {
+        $this->nbBoite = $nbBoite;
+
+        return $this;
+    }
+
+
     public function getId(): ?int
     {
         return $this->id;

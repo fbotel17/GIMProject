@@ -22,6 +22,7 @@ class TraitementType extends AbstractType
             ])
             ->add('dose', IntegerType::class, [
                 'required' => false,
+                'attr' => ['id' => 'dose'], // Ajout de l'ID pour le champ 'dose'
             ])
             ->add('frequence', ChoiceType::class, [
                 'choices' => [
@@ -30,10 +31,9 @@ class TraitementType extends AbstractType
                 ],
                 'required' => true,
                 'expanded' => true, // Affichage en boutons radio
+                'attr' => ['id' => 'frequence'], // Ajout de l'ID pour le champ 'frequence'
             ])
-            ->add('actif', CheckboxType::class, [
-                'required' => false,
-            ]);
+        ;
     }
 
     public function configureOptions(OptionsResolver $resolver): void

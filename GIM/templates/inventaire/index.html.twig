@@ -20,7 +20,8 @@
 						<th>Médicament</th>
 						<th>Forme Pharmaceutique</th>
 						<th>Voie d'Administration</th>
-						<th>Quantité</th>
+						<th>Nombre de Boîtes</th>
+						<th>Quantité Totale de Pillules</th>
 						<th>Consommation</th>
 						<th>Actions</th>
 					</tr>
@@ -31,18 +32,15 @@
 							<td>{{ item.medicament.nom }}</td>
 							<td>{{ item.medicament.formePharmaceutique }}</td>
 							<td>{{ item.medicament.voieAdministration }}</td>
+							<td>{{ item.nbBoite }}</td>
 							<td>{{ item.quantite }}</td>
 							<td>
-								<!-- Bouton pour ouvrir le modal -->
 								<button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#modalConsommation{{ item.id }}">
 									Consommer
 								</button>
-
 								{% include 'modals/inventaire_modals.html.twig' %}
-
 							</td>
 							<td>
-								<!-- Formulaire de Suppression -->
 								<form method="post" action="{{ path('delete_inventaire', {'id': item.id}) }}" onsubmit="return confirm('Voulez-vous vraiment supprimer ce médicament ?');">
 									<input type="hidden" name="_token" value="{{ csrf_token('delete' ~ item.id) }}">
 									<button type="submit" class="btn btn-danger btn-sm">Supprimer</button>
@@ -54,6 +52,4 @@
 			</table>
 		{% endif %}
 	</div>
-
-
 {% endblock %}

@@ -6,25 +6,63 @@
 		{{ form_start(form, {'attr': {'class': 'needs-validation', 'novalidate': 'novalidate'}}) }}
 		<div class="form-group">
 			{{ form_label(form.dateRenouvellement, 'Date de Renouvellement', {'label_attr': {'class': 'form-label'}}) }}
-
 			{{ form_widget(form.dateRenouvellement, {'attr': {'class': 'form-control'}}) }}
 		</div>
 		<div class="form-group">
 			{{ form_label(form.dose, 'Dose', {'label_attr': {'class': 'form-label'}}) }}
-
-			{{ form_widget(form.dose, {'attr': {'class': 'form-control'}}) }}
+			{{ form_widget(form.dose, {'attr': {'class': 'form-control', 'id': 'dose'}}) }}
 		</div>
 		<div class="form-group">
 			{{ form_label(form.frequence, 'Fréquence', {'label_attr': {'class': 'form-label'}}) }}
-
-			{{ form_widget(form.frequence, {'attr': {'class': 'form-control'}}) }}
+			{{ form_widget(form.frequence, {'attr': {'class': 'form-control', 'id': 'frequence'}}) }}
 		</div>
-		<div class="form-group form-check">
-			{{ form_label(form.actif, 'Actif', {'label_attr': {'class': 'form-check-label'}}) }}
-
-			{{ form_widget(form.actif, {'attr': {'class': 'form-check-input'}}) }}
+		<div id="result">
+			Vous prenez votre traitement
+			<span id="dose-display">{{ form.dose.vars.value }}</span>
+			fois
+			<span id="frequence-display">{{ form.frequence.vars.value }}</span>
 		</div>
 		<button type="submit" class="btn btn-primary mt-3">Ajouter</button>
 		{{ form_end(form) }}
 	</div>
+
+	<script>
+		document.addEventListener('DOMContentLoaded', function () {
+const doseInput = document.getElementById('traitement_dose');
+const frequenceRadios = document.getElementsByName('traitement[frequence]');
+const doseDisplay = document.getElementById('dose-display');
+const frequenceDisplay = document.getElementById('frequence-display');
+
+if (doseInput && frequenceRadios.length > 0 && doseDisplay && frequenceDisplay) {
+doseDisplay.textContent = doseInput.value || '0';
+
+function updateFrequenceDisplay() {
+const selectedFrequence = Array.from(frequenceRadios).find(radio => radio.checked);
+if (selectedFrequence) {
+if (selectedFrequence.value === 'jour') {
+frequenceDisplay.textContent = 'par jour';
+} else if (selectedFrequence.value === 'semaine') {
+frequenceDisplay.textContent = 'par semaine';
+}
+}
+}
+
+function updateDoseDisplay() {
+doseDisplay.textContent = doseInput.value || '0';
+}
+frequenceRadios.forEach(function (radio) {
+radio.addEventListener('change', updateFrequenceDisplay);
+});
+
+doseInput.addEventListener('input', updateDoseDisplay);
+
+updateFrequenceDisplay();
+updateDoseDisplay();
+} else {
+console.error('Pas d\elements trouve');
+}
+});
+	</script>
+
+
 {% endblock %}

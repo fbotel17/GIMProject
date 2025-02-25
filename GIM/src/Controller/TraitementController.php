@@ -4,17 +4,18 @@
 namespace App\Controller;
 
 use GuzzleHttp\Client;
+use App\Entity\Inventaire;
 use App\Entity\Medicament;
 use App\Entity\Traitement;
 use App\Form\MedicamentType;
 use App\Form\TraitementType;
 use App\Repository\MedicamentRepository;
 use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\Common\Collections\Collection;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Doctrine\Common\Collections\Collection;
 
 
 class TraitementController extends AbstractController
@@ -25,10 +26,19 @@ class TraitementController extends AbstractController
         $user = $this->getUser();
         $traitements = $entityManager->getRepository(Traitement::class)->findBy(['user' => $user]);
 
+        $traitementsData = [];
+        foreach ($traitements as $traitement) {
+            $traitementsData[] = [
+                'traitement' => $traitement,
+                'canToggleActif' => $this->canToggleActif($traitement, $entityManager),
+            ];
+        }
+
         return $this->render('traitement/index.html.twig', [
-            'traitements' => $traitements,
+            'traitementsData' => $traitementsData,
         ]);
     }
+
 
     #[Route('/traitement/new', name: 'app_traitement_new', methods: ['GET', 'POST'])]
     public function new(Request $request, EntityManagerInterface $entityManager): Response
@@ -39,6 +49,7 @@ class TraitementController extends AbstractController
 
         if ($form->isSubmitted() && $form->isValid()) {
             $traitement->setUser($this->getUser());
+            $traitement->setActif(false);
 
             $dateRenouvellement = $traitement->getDateRenouvellement();
             $jourRestant = $dateRenouvellement ? $dateRenouvellement->diff(new \DateTime())->days : 0;
@@ -52,14 +63,6 @@ class TraitementController extends AbstractController
                     $totalDose = $jourRestant * $dose;
                 } elseif ($frequence === 'semaine') {
                     $totalDose = ceil($jourRestant / 7) * $dose;
-                }
-
-                if ($this->checkInventory($traitement->getMedicaments(), $totalDose, $entityManager)) {
-                    $traitement->setActif(true);
-                    $traitement->deduireMedicaments(); // Déduire les médicaments si le traitement est actif
-                } else {
-                    $traitement->setActif(false);
-                    $this->addFlash('error', 'Médicaments insuffisants dans l\'inventaire');
                 }
             }
 
@@ -75,19 +78,7 @@ class TraitementController extends AbstractController
         ]);
     }
 
-    // Vérification de l'inventaire
-    private function checkInventory(Collection $medicaments, int $totalDose, EntityManagerInterface $entityManager): bool
-    {
-        $inventoryRepository = $entityManager->getRepository(Medicament::class);
 
-        foreach ($medicaments as $medicament) {
-            $inventory = $inventoryRepository->findOneBy(['id' => $medicament->getId()]);
-            if ($inventory && $inventory->getStock() < $totalDose) {
-                return false;
-            }
-        }
-        return true;
-    }
 
 
 
@@ -188,5 +179,44 @@ class TraitementController extends AbstractController
             // Gérer les exceptions et erreurs
             return null;
         }
+    }
+
+    #[Route('/traitement/{id}/delete', name: 'app_traitement_delete', methods: ['POST'])]
+    public function delete(Traitement $traitement, EntityManagerInterface $entityManager): Response
+    {
+        $entityManager->remove($traitement);
+        $entityManager->flush();
+
+        $this->addFlash('success', 'Traitement supprimé avec succès.');
+
+        return $this->redirectToRoute('app_traitement');
+    }
+
+    #[Route('/traitement/{id}/toggle-actif', name: 'app_traitement_toggle_actif', methods: ['POST'])]
+    public function toggleActif(Traitement $traitement, EntityManagerInterface $entityManager): Response
+    {
+        $traitement->setActif(!$traitement->isActif());
+        $entityManager->flush();
+
+        $this->addFlash('success', 'État du traitement mis à jour avec succès.');
+
+        return $this->redirectToRoute('app_traitement');
+    }
+
+    private function canToggleActif(Traitement $traitement, EntityManagerInterface $entityManager): bool
+    {
+        // Vérifier si le traitement a des médicaments associés
+        if ($traitement->getMedicaments()->isEmpty()) {
+            return false;
+        }
+
+        // Vérifier si les médicaments sont disponibles dans l'inventaire
+        foreach ($traitement->getMedicaments() as $medicament) {
+            $inventaire = $entityManager->getRepository(Inventaire::class)->findOneBy(['medicament' => $medicament, 'user' => $this->getUser()]);
+            if (!$inventaire || $inventaire->getQuantite() <= 0) {
+                return false;
+            }
+        }
+        return true;
     }
 }
