@@ -143,4 +143,24 @@ class Traitement
             }
         }
     }
+
+    /**
+     * @return array
+     */
+    public function getJoursDePrise(): array
+    {
+        $nombreDePrisesParSemaine = $this->dose;
+        $joursDePrise = [];
+
+        $interval = 7 / $nombreDePrisesParSemaine;
+        for ($i = 0; $i < $nombreDePrisesParSemaine; $i++) {
+            $jour = round(1 + $i * $interval); 
+            if ($jour > 7) {
+                $jour = 7; 
+            }
+            $joursDePrise[] = $jour;
+        }
+
+        return $joursDePrise;
+    }
 }

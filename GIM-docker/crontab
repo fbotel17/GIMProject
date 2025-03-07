@@ -1,0 +1,2 @@
+# /docker/php/crontab
+22 16 * * * root cd /var/www/symfony_docker && php bin/console app:deduct-medicaments >> /var/log/cron.log 2>&1

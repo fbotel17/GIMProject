@@ -49,3 +49,12 @@ services:
     environment:
       PMA_HOST: database
       MYSQL_ROOT_PASSWORD: secret
+
+  cron:
+    build:
+      context: .
+      dockerfile: Dockerfile.cron
+    volumes:
+      - ../gim:/var/www/symfony_docker
+    depends_on:
+      - database

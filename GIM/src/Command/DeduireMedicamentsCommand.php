@@ -43,16 +43,19 @@ class DeduireMedicamentsCommand extends Command
             $user = $traitement->getUser();
             $frequence = $traitement->getFrequence();
             $dose = $traitement->getDose();
-
+        
             if ($frequence === 'jour') {
                 $this->deduireMedicaments($traitement, $dose);
             } elseif ($frequence === 'semaine') {
-                $jourDeLaSemaine = (new \DateTime())->format('N');
-                if ($jourDeLaSemaine === '1') { // Lundi
+                $joursDePrise = $traitement->getJoursDePrise();
+                $jourActuel = (new \DateTime())->format('N'); // 1 pour lundi, 2 pour mardi, etc.
+        
+                if (in_array($jourActuel, $joursDePrise)) {
                     $this->deduireMedicaments($traitement, $dose);
                 }
             }
         }
+        
 
         $this->entityManager->flush();
         $output->writeln('Inventaire mis à jour avec succès.');
