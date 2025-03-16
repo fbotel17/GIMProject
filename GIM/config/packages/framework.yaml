@@ -1,16 +1,24 @@
 # see https://symfony.com/doc/current/reference/configuration/framework.html
 framework:
-    secret: '%env(APP_SECRET)%'
-    #csrf_protection: true
+  secret: "%env(APP_SECRET)%"
+  #csrf_protection: true
 
-    # Note that the session will be started ONLY if you read or write from it.
-    session: true
+  # Note that the session will be started ONLY if you read or write from it.
+  session: true
+  mailer:
+    dsn: "%env(MAILER_DSN)%"
 
-    #esi: true
-    #fragments: true
+  messenger:
+    transports:
+      sync: "sync://"
+    routing:
+      'Symfony\Component\Mailer\Messenger\SendEmailMessage': sync
+
+  #esi: true
+  #fragments: true
 
 when@test:
-    framework:
-        test: true
-        session:
-            storage_factory_id: session.storage.factory.mock_file
+  framework:
+    test: true
+    session:
+      storage_factory_id: session.storage.factory.mock_file
