@@ -48,9 +48,6 @@ class Medicament
     #[ORM\OneToMany(mappedBy: "medicament", targetEntity: "App\Entity\Inventaire")]
     private $inventaires;
 
-    #[ORM\Column(type: "integer")]
-    private int $stock;
-
 
 
     /**
@@ -211,14 +208,4 @@ class Medicament
         return $this;
     }
 
-    public function getStock(): int
-    {
-        return $this->stock;
-    }
-
-    public function setStock(int $stock): self
-    {
-        $this->stock = $stock;
-        return $this;
-    }
 }

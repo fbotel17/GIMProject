@@ -1,5 +1,6 @@
 {% extends 'base.html.twig' %}
 
+
 {% block title %}Accueil
 {% endblock %}
 
@@ -56,7 +57,39 @@
 				</tbody>
 			</table>
 
-			{% if app.user.roles == ['ROLE_ADMIN'] %}
+			<!-- Pagination Simplifiée -->
+			<nav aria-label="Page navigation">
+				<ul class="pagination justify-content-center">
+					{% if currentPage > 1 %}
+						<li class="page-item">
+							<a class="page-link" href="{{ path('app_medicament', {search: searchTerm, page: currentPage - 1}) }}" aria-label="Previous">
+								<span aria-hidden="true">&laquo;</span>
+							</a>
+						</li>
+					{% endif %}
+
+					<li class="page-item d-flex align-items-center">
+						<form method="GET" action="{{ path('app_medicament') }}" class="form-inline d-flex align-items-center">
+							<input type="hidden" name="search" value="{{ searchTerm }}">
+							<label for="page" class="mr-2 mb-0">Page</label>
+							<input type="number" name="page" id="page" class="form-control mx-1" min="1" max="{{ totalPages }}" value="{{ currentPage }}" onchange="this.form.submit()" style="width: 60px;">
+							<span class="mx-1">sur {{ totalPages }}</span>
+						</form>
+					</li>
+
+					{% if currentPage < totalPages %}
+						<li class="page-item">
+							<a class="page-link" href="{{ path('app_medicament', {search: searchTerm, page: currentPage + 1}) }}" aria-label="Next">
+								<span aria-hidden="true">&raquo;</span>
+							</a>
+						</li>
+					{% endif %}
+				</ul>
+			</nav>
+
+
+			{% if 'ROLE_ADMIN' in app.user.roles %}
+
 				<div class="d-flex">
 					<button id="delete-button" class="btn btn-danger ms-2" data-bs-toggle="modal" data-bs-target="#deleteModal">
 						Supprimer tous les médicaments
@@ -65,7 +98,7 @@
 			{% endif %}
 
 		</div>
-	{% elseif app.user.roles == ['ROLE_ADMIN'] %}
+	{% elseif 'ROLE_ADMIN' in app.user.roles %}
 		<div class="alert alert-warning text-center p-4 mt-4" style="border: 2px dashed #ffc107; background-color: #fff3cd;">
 			<svg xmlns="http://www.w3.org/2000/svg" width="50" height="50" fill="currentColor" class="bi bi-exclamation-triangle-fill text-warning mb-2" viewbox="0 0 16 16">
 				<path d="M7.938 2.016a.13.13 0 0 1 .125 0l6.857 11.813c.06.104.06.23 0 .334a.252.252 0 0 1-.22.126H1.302a.252.252 0 0 1-.22-.126.255.255 0 0 1 0-.334L7.938 2.016zM8 5c-.535 0-.954.462-.9.995l.35 4.5a.55.55 0 0 0 1.1 0l.35-4.5c.054-.533-.365-.995-.9-.995zm.002 7a1.002 1.002 0 1 0 0 2.004A1.002 1.002 0 0 0 8.002 12z"/>
