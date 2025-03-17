@@ -14,42 +14,44 @@
 				Aucun médicament dans l'inventaire.
 			</div>
 		{% else %}
-			<table class="table table-striped table-bordered table-hover">
-				<thead class="thead-dark">
-					<tr>
-						<th>Médicament</th>
-						<th>Forme Pharmaceutique</th>
-						<th>Voie d'Administration</th>
-						<th>Nombre de Boîtes</th>
-						<th>Quantité Totale de Pillules</th>
-						<th>Consommation</th>
-						<th>Actions</th>
-					</tr>
-				</thead>
-				<tbody>
-					{% for item in inventaire %}
+			<div class="table-responsive">
+				<table class="table table-striped table-bordered table-hover">
+					<thead class="thead-dark">
 						<tr>
-							<td>{{ item.medicament.nom }}</td>
-							<td>{{ item.medicament.formePharmaceutique }}</td>
-							<td>{{ item.medicament.voieAdministration }}</td>
-							<td>{{ item.nbBoite }}</td>
-							<td>{{ item.quantite }}</td>
-							<td>
-								<button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#modalConsommation{{ item.id }}">
-									Consommer
-								</button>
-								{% include 'modals/inventaire_modals.html.twig' %}
-							</td>
-							<td>
-								<form method="post" action="{{ path('delete_inventaire', {'id': item.id}) }}" onsubmit="return confirm('Voulez-vous vraiment supprimer ce médicament ?');">
-									<input type="hidden" name="_token" value="{{ csrf_token('delete' ~ item.id) }}">
-									<button type="submit" class="btn btn-danger btn-sm">Supprimer</button>
-								</form>
-							</td>
+							<th>Médicament</th>
+							<th>Forme Pharmaceutique</th>
+							<th>Voie d'Administration</th>
+							<th>Nombre de Boîtes</th>
+							<th>Quantité Totale de Pillules</th>
+							<th>Consommation</th>
+							<th>Actions</th>
 						</tr>
-					{% endfor %}
-				</tbody>
-			</table>
+					</thead>
+					<tbody>
+						{% for item in inventaire %}
+							<tr>
+								<td>{{ item.medicament.nom }}</td>
+								<td>{{ item.medicament.formePharmaceutique }}</td>
+								<td>{{ item.medicament.voieAdministration }}</td>
+								<td>{{ item.nbBoite }}</td>
+								<td>{{ item.quantite }}</td>
+								<td>
+									<button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#modalConsommation{{ item.id }}">
+										Consommer
+									</button>
+									{% include 'modals/inventaire_modals.html.twig' %}
+								</td>
+								<td>
+									<form method="post" action="{{ path('delete_inventaire', {'id': item.id}) }}" onsubmit="return confirm('Voulez-vous vraiment supprimer ce médicament ?');">
+										<input type="hidden" name="_token" value="{{ csrf_token('delete' ~ item.id) }}">
+										<button type="submit" class="btn btn-danger btn-sm">Supprimer</button>
+									</form>
+								</td>
+							</tr>
+						{% endfor %}
+					</tbody>
+				</table>
+			</div>
 		{% endif %}
 	</div>
 {% endblock %}

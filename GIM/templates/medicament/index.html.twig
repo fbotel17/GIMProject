@@ -1,124 +1,122 @@
 {% extends 'base.html.twig' %}
 
-
 {% block title %}Accueil
 {% endblock %}
 
 {% block body %}
-	<h1>Liste des médicaments</h1>
+	<div class="container mt-4">
+		<h1 class="mb-4">Liste des médicaments</h1>
 
-	{% for label, messages in app.flashes %}
-		{% for message in messages %}
-			<div class="alert alert-{{ label }}">
-				{{ message }}
-			</div>
+		{% for label, messages in app.flashes %}
+			{% for message in messages %}
+				<div class="alert alert-{{ label }}">
+					{{ message }}
+				</div>
+			{% endfor %}
 		{% endfor %}
-	{% endfor %}
 
-	<div class="d-flex justify-content-between mb-3">
-		<form method="get" action="{{ path('app_medicament') }}" class="d-flex">
-			<div class="search-container position-relative d-flex align-items-center w-100">
-				<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewbox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="search-icon feather feather-search">
-					<circle cx="11" cy="11" r="8"></circle>
-					<line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-				</svg>
-				<input class="form-control search-input ps-5" value="{{ searchTerm }}" type="search" name="search" placeholder="Rechercher un médicament par nom" aria-label="Search">
-				<button class="btn btn-search ms-auto" type="submit">Rechercher</button>
-			</div>
-		</form>
-	</div>
-
-	{% if medicaments is not empty %}
-		<div id="medicaments-table">
-			<table class="table">
-				<thead>
-					<tr>
-						<th>Code CIS</th>
-						<th>Nom</th>
-						<th>Forme Pharmaceutique</th>
-						<th>Voie Administration</th>
-						<th>Ajouter à l'inventaire</th>
-					</tr>
-				</thead>
-				<tbody>
-					{% for medicament in medicaments %}
-						<tr>
-							<td>{{ medicament.codeCis }}</td>
-							<td>{{ medicament.nom }}</td>
-							<td>{{ medicament.formePharmaceutique }}</td>
-							<td>{{ medicament.voieAdministration }}</td>
-							<td>
-								<button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#modal-ajouter-{{ medicament.id }}">
-									Ajouter
-								</button>
-							</td>
-						</tr>
-					{% endfor %}
-				</tbody>
-			</table>
-
-			<!-- Pagination Simplifiée -->
-			<nav aria-label="Page navigation">
-				<ul class="pagination justify-content-center">
-					{% if currentPage > 1 %}
-						<li class="page-item">
-							<a class="page-link" href="{{ path('app_medicament', {search: searchTerm, page: currentPage - 1}) }}" aria-label="Previous">
-								<span aria-hidden="true">&laquo;</span>
-							</a>
-						</li>
-					{% endif %}
-
-					<li class="page-item d-flex align-items-center">
-						<form method="GET" action="{{ path('app_medicament') }}" class="form-inline d-flex align-items-center">
-							<input type="hidden" name="search" value="{{ searchTerm }}">
-							<label for="page" class="mr-2 mb-0">Page</label>
-							<input type="number" name="page" id="page" class="form-control mx-1" min="1" max="{{ totalPages }}" value="{{ currentPage }}" onchange="this.form.submit()" style="width: 60px;">
-							<span class="mx-1">sur {{ totalPages }}</span>
-						</form>
-					</li>
-
-					{% if currentPage < totalPages %}
-						<li class="page-item">
-							<a class="page-link" href="{{ path('app_medicament', {search: searchTerm, page: currentPage + 1}) }}" aria-label="Next">
-								<span aria-hidden="true">&raquo;</span>
-							</a>
-						</li>
-					{% endif %}
-				</ul>
-			</nav>
-
-
-			{% if 'ROLE_ADMIN' in app.user.roles %}
-
-				<div class="d-flex">
-					<button id="delete-button" class="btn btn-danger ms-2" data-bs-toggle="modal" data-bs-target="#deleteModal">
-						Supprimer tous les médicaments
+		<div class="d-flex justify-content-between mb-3">
+			<form method="get" action="{{ path('app_medicament') }}" class="d-flex w-100">
+				<div class="input-group">
+					<input class="form-control" value="{{ searchTerm }}" type="search" name="search" placeholder="Rechercher un médicament par nom" aria-label="Search">
+					<button class="btn btn-outline-secondary" type="submit">
+						<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewbox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-search">
+							<circle cx="11" cy="11" r="8"></circle>
+							<line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+						</svg>
 					</button>
 				</div>
-			{% endif %}
-
-		</div>
-	{% elseif 'ROLE_ADMIN' in app.user.roles %}
-		<div class="alert alert-warning text-center p-4 mt-4" style="border: 2px dashed #ffc107; background-color: #fff3cd;">
-			<svg xmlns="http://www.w3.org/2000/svg" width="50" height="50" fill="currentColor" class="bi bi-exclamation-triangle-fill text-warning mb-2" viewbox="0 0 16 16">
-				<path d="M7.938 2.016a.13.13 0 0 1 .125 0l6.857 11.813c.06.104.06.23 0 .334a.252.252 0 0 1-.22.126H1.302a.252.252 0 0 1-.22-.126.255.255 0 0 1 0-.334L7.938 2.016zM8 5c-.535 0-.954.462-.9.995l.35 4.5a.55.55 0 0 0 1.1 0l.35-4.5c.054-.533-.365-.995-.9-.995zm.002 7a1.002 1.002 0 1 0 0 2.004A1.002 1.002 0 0 0 8.002 12z"/>
-			</svg>
-			<h3 class="fw-bold">Aucun médicament disponible</h3>
-			<p class="mb-3">Aucune donnée n'a été trouvée dans la base.</p>
-			<a href="#" class="btn btn-primary animate-import" data-bs-toggle="modal" data-bs-target="#importModal">
-				Importer des médicaments maintenant
-			</a>
+			</form>
 		</div>
 
-	{% else %}
+		{% if medicaments is not empty %}
+			<div id="medicaments-table" class="table-responsive">
+				<table class="table table-striped">
+					<thead>
+						<tr>
+							<th>Code CIS</th>
+							<th>Nom</th>
+							<th>Forme Pharmaceutique</th>
+							<th>Voie Administration</th>
+							<th>Ajouter à l'inventaire</th>
+						</tr>
+					</thead>
+					<tbody>
+						{% for medicament in medicaments %}
+							<tr>
+								<td>{{ medicament.codeCis }}</td>
+								<td>{{ medicament.nom }}</td>
+								<td>{{ medicament.formePharmaceutique }}</td>
+								<td>{{ medicament.voieAdministration }}</td>
+								<td>
+									<button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#modal-ajouter-{{ medicament.id }}">
+										Ajouter
+									</button>
+								</td>
+							</tr>
+						{% endfor %}
+					</tbody>
+				</table>
 
-		<div class="alert alert-warning text-center p-4 mt-4" style="border: 2px dashed #ffc107; background-color: #fff3cd;">
-			<svg xmlns="http://www.w3.org/2000/svg" width="50" height="50" fill="currentColor" class="bi bi-exclamation-triangle-fill text-warning mb-2" viewbox="0 0 16 16">
-				<path d="M7.938 2.016a.13.13 0 0 1 .125 0l6.857 11.813c.06.104.06.23 0 .334a.252.252 0 0 1-.22.126H1.302a.252.252 0 0 1-.22-.126.255.255 0 0 1 0-.334L7.938 2.016zM8 5c-.535 0-.954.462-.9.995l.35 4.5a.55.55 0 0 0 1.1 0l.35-4.5c.054-.533-.365-.995-.9-.995zm.002 7a1.002 1.002 0 1 0 0 2.004A1.002 1.002 0 0 0 8.002 12z"/>
-			</svg>
-			<h3 class="fw-bold">Aucun médicament trouvé</h3>
-		</div>
-	{% endif %}
+				<!-- Pagination -->
+				<nav aria-label="Page navigation">
+					<ul class="pagination justify-content-center">
+						{% if currentPage > 1 %}
+							<li class="page-item">
+								<a class="page-link" href="{{ path('app_medicament', {search: searchTerm, page: currentPage - 1}) }}" aria-label="Previous">
+									<span aria-hidden="true">&laquo;</span>
+								</a>
+							</li>
+						{% endif %}
 
-	{% include 'modals/medicament_modals.html.twig' %}
+						<li class="page-item d-flex align-items-center">
+							<form method="GET" action="{{ path('app_medicament') }}" class="form-inline d-flex align-items-center">
+								<input type="hidden" name="search" value="{{ searchTerm }}">
+								<label for="page" class="mr-2 mb-0">Page</label>
+								<input type="number" name="page" id="page" class="form-control mx-1" min="1" max="{{ totalPages }}" value="{{ currentPage }}" onchange="this.form.submit()" style="width: 60px;">
+								<span class="mx-1">sur
+									{{ totalPages }}</span>
+							</form>
+						</li>
+
+						{% if currentPage < totalPages %}
+							<li class="page-item">
+								<a class="page-link" href="{{ path('app_medicament', {search: searchTerm, page: currentPage + 1}) }}" aria-label="Next">
+									<span aria-hidden="true">&raquo;</span>
+								</a>
+							</li>
+						{% endif %}
+					</ul>
+				</nav>
+
+				{% if 'ROLE_ADMIN' in app.user.roles %}
+					<div class="d-flex justify-content-end mt-3">
+						<button id="delete-button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal">
+							Supprimer tous les médicaments
+						</button>
+					</div>
+				{% endif %}
+			</div>
+		{% elseif 'ROLE_ADMIN' in app.user.roles %}
+			<div class="alert alert-warning text-center p-4 mt-4" style="border: 2px dashed #ffc107; background-color: #fff3cd;">
+				<svg xmlns="http://www.w3.org/2000/svg" width="50" height="50" fill="currentColor" class="bi bi-exclamation-triangle-fill text-warning mb-2" viewbox="0 0 16 16">
+					<path d="M7.938 2.016a.13.13 0 0 1 .125 0l6.857 11.813c.06.104.06.23 0 .334a.252.252 0 0 1-.22.126H1.302a.252.252 0 0 1-.22-.126.255.255 0 0 1 0-.334L7.938 2.016zM8 5c-.535 0-.954.462-.9.995l.35 4.5a.55.55 0 0 0 1.1 0l.35-4.5c.054-.533-.365-.995-.9-.995zm.002 7a1.002 1.002 0 1 0 0 2.004A1.002 1.002 0 0 0 8.002 12z"/>
+				</svg>
+				<h3 class="fw-bold">Aucun médicament disponible</h3>
+				<p class="mb-3">Aucune donnée n'a été trouvée dans la base.</p>
+				<a href="#" class="btn btn-primary animate-import" data-bs-toggle="modal" data-bs-target="#importModal">
+					Importer des médicaments maintenant
+				</a>
+			</div>
+		{% else %}
+			<div class="alert alert-warning text-center p-4 mt-4" style="border: 2px dashed #ffc107; background-color: #fff3cd;">
+				<svg xmlns="http://www.w3.org/2000/svg" width="50" height="50" fill="currentColor" class="bi bi-exclamation-triangle-fill text-warning mb-2" viewbox="0 0 16 16">
+					<path d="M7.938 2.016a.13.13 0 0 1 .125 0l6.857 11.813c.06.104.06.23 0 .334a.252.252 0 0 1-.22.126H1.302a.252.252 0 0 1-.22-.126.255.255 0 0 1 0-.334L7.938 2.016zM8 5c-.535 0-.954.462-.9.995l.35 4.5a.55.55 0 0 0 1.1 0l.35-4.5c.054-.533-.365-.995-.9-.995zm.002 7a1.002 1.002 0 1 0 0 2.004A1.002 1.002 0 0 0 8.002 12z"/>
+				</svg>
+				<h3 class="fw-bold">Aucun médicament trouvé</h3>
+			</div>
+		{% endif %}
+
+		{% include 'modals/medicament_modals.html.twig' %}
+	</div>
 {% endblock %}
