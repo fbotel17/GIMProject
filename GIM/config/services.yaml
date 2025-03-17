@@ -18,3 +18,7 @@ services:
   App\Service\CipToCisService:
     arguments:
       $client: "@http_client"
+    
+  App\Security\CustomUserProvider:
+        arguments:
+            $entityManager: '@doctrine.orm.entity_manager'

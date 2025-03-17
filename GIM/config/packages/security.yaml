@@ -4,9 +4,7 @@ security:
 
   providers:
     app_user_provider:
-      entity:
-        class: App\Entity\User
-        property: email
+      id: App\Security\CustomUserProvider
 
   firewalls:
     dev:
@@ -24,9 +22,6 @@ security:
       logout:
         path: app_logout
         target: app_home
-
-        # where to redirect after logout
-        # target: app_any_route
 
   access_control:
     - { path: ^/admin, roles: ROLE_ADMIN }
