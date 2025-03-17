@@ -16,10 +16,19 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use App\Repository\InventaireRepository;
+use App\Service\NotificationService;
 
 
 class TraitementController extends AbstractController
 {
+    private $notificationService;
+
+    public function __construct(NotificationService $notificationService)
+    {
+        $this->notificationService = $notificationService;
+    }
+
     #[Route('/traitement', name: 'app_traitement')]
     public function index(EntityManagerInterface $entityManager): Response
     {
@@ -83,40 +92,45 @@ class TraitementController extends AbstractController
 
 
     #[Route('/traitement/{id}/add-medicament', name: 'app_traitement_add_medicament', methods: ['GET', 'POST'])]
-    public function addMedicament(Traitement $traitement, Request $request, EntityManagerInterface $entityManager, MedicamentRepository $medicamentRepository): Response
+    public function addMedicament(Traitement $traitement, Request $request, EntityManagerInterface $entityManager, MedicamentRepository $medicamentRepository, InventaireRepository $inventaireRepository): Response
     {
-        // Récupérer le terme de recherche s'il existe
         $searchTerm = $request->query->get('search', '');
-
-        // Le numéro de la page, avec une valeur par défaut de 1 si non spécifiée
         $page = $request->query->getInt('page', 1);
-
-        // Nombre d'éléments par page
         $limit = 25;
+        $tab = $request->query->get('tab', 'inventaire'); // Par défaut, afficher les médicaments de l'inventaire
 
-        // Vérification si le terme de recherche est un CIP7 valide
-        if (preg_match('/^\d{13}$/', $searchTerm)) {
-            // Convertir le CIP7 en CIS via l'API GraphQL
-            $cis = $this->queryGraphQL($searchTerm);
+        if ($tab === 'inventaire') {
+            // Récupérer les médicaments de l'inventaire de l'utilisateur
+            $user = $this->getUser();
+            $inventaires = $inventaireRepository->findMedicamentsBySearchTerm($user->getId(), $searchTerm, $page, $limit);
 
-            // Si aucun CIS n'est trouvé
-            if (!$cis) {
-                return $this->json(['error' => 'CIP non reconnu'], 404);
-            }
+            $medicamentIds = array_map(fn($inventaire) => $inventaire->getMedicament()->getId(), $inventaires);
+            $medicaments = $medicamentRepository->findBy(['id' => $medicamentIds]);
 
-            // Si un CIS est trouvé, on utilise le CIS pour effectuer la recherche dans la base de données
-            $medicaments = $medicamentRepository->findBySearchTerm($cis, $limit, ($page - 1) * $limit);
-            $totalMedicaments = $medicamentRepository->countBySearchTerm($cis);
+            $totalMedicaments = count($medicamentIds);
         } else {
-            // Recherche par nom ou codeCIS
-            $medicaments = $medicamentRepository->findBySearchTerm($searchTerm, $limit, ($page - 1) * $limit);
-            $totalMedicaments = $medicamentRepository->countBySearchTerm($searchTerm);
+            // Logique pour les médicaments globaux
+            if (preg_match('/^\d{13}$/', $searchTerm)) {
+                // Convertir le CIP7 en CIS via l'API GraphQL
+                $cis = $this->queryGraphQL($searchTerm);
+
+                // Si aucun CIS n'est trouvé
+                if (!$cis) {
+                    return $this->json(['error' => 'CIP non reconnu'], 404);
+                }
+
+                // Rechercher par CIS
+                $medicaments = $medicamentRepository->findBySearchTerm($cis, $limit, ($page - 1) * $limit);
+                $totalMedicaments = $medicamentRepository->countBySearchTerm($cis);
+            } else {
+                // Rechercher par nom ou codeCIS
+                $medicaments = $medicamentRepository->findBySearchTerm($searchTerm, $limit, ($page - 1) * $limit);
+                $totalMedicaments = $medicamentRepository->countBySearchTerm($searchTerm);
+            }
         }
 
-        // Calcul du nombre total de pages
         $totalPages = ceil($totalMedicaments / $limit);
 
-        // Traitement du formulaire pour ajouter un médicament au traitement
         if ($request->isMethod('POST')) {
             $medicamentId = $request->request->get('medicament_id');
             $medicament = $medicamentRepository->find($medicamentId);
@@ -127,9 +141,7 @@ class TraitementController extends AbstractController
                 $entityManager->flush();
                 $this->addFlash('success', message: 'Medicament : ' . $medicament->getNom() . ' ajouté au traitement ' . $traitement->getId());
 
-
-                // Rediriger vers la route avec l'ID du traitement
-                return $this->redirectToRoute('app_traitement_add_medicament', ['id' => $traitement->getId()]);
+                return $this->redirectToRoute('app_traitement_add_medicament', ['id' => $traitement->getId(), 'tab' => $tab]);
             }
         }
 
@@ -139,8 +151,10 @@ class TraitementController extends AbstractController
             'totalPages' => $totalPages,
             'currentPage' => $page,
             'searchTerm' => $searchTerm,
+            'tab' => $tab,
         ]);
     }
+
 
     // Méthode pour interroger l'API GraphQL et récupérer le CIS
     private function queryGraphQL(string $cip7): ?string
@@ -217,6 +231,8 @@ class TraitementController extends AbstractController
                 return false;
             }
         }
+        $this->notificationService->sendRenewalNotifications();
+
         return true;
     }
 }

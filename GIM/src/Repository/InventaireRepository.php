@@ -16,6 +16,20 @@ class InventaireRepository extends ServiceEntityRepository
         parent::__construct($registry, Inventaire::class);
     }
 
+    public function findMedicamentsBySearchTerm(int $userId, string $searchTerm, int $page, int $limit): array
+    {
+        return $this->createQueryBuilder('i')
+            ->innerJoin('i.medicament', 'm')
+            ->where('i.user = :user')
+            ->andWhere('m.nom LIKE :searchTerm OR m.codeCIS LIKE :searchTerm')
+            ->setParameter('user', $userId)
+            ->setParameter('searchTerm', '%' . $searchTerm . '%')
+            ->setFirstResult(($page - 1) * $limit)
+            ->setMaxResults($limit)
+            ->getQuery()
+            ->getResult();
+    }
+
     //    /**
     //     * @return Inventaire[] Returns an array of Inventaire objects
     //     */
