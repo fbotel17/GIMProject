@@ -85,6 +85,7 @@ class MedicamentController extends AbstractController
         // Récupérer le code CIP13 de la requête
         $data = json_decode($request->getContent(), true);
         $cip13 = $data['cip13'] ?? null;
+        $quantite = $data['quantity'] ?? null;
 
         if (!$cip13 || !preg_match('/^\d{13}$/', $cip13)) {
             return new JsonResponse(['error' => 'Code CIP13 invalide'], 400);
@@ -119,13 +120,13 @@ class MedicamentController extends AbstractController
         ]);
 
         if ($inventaire) {
-            $inventaire->setQuantite($inventaire->getQuantite() + 1); // Incrémenter la quantité
+            $inventaire->setQuantite($inventaire->getQuantite() + $quantite); // Incrémenter la quantité
         } else {
             $inventaire = new Inventaire();
             $inventaire->setUser($user);
             $inventaire->setMedicament($medicament);
             $inventaire->setNbBoite(1);
-            $inventaire->setQuantite(30); // Définir la quantité initiale
+            $inventaire->setQuantite($quantite); // Définir la quantité initiale
         }
 
         $em->persist($inventaire);
