@@ -2,14 +2,16 @@
 
 namespace App\Controller;
 
+use DateTime;
+use App\Entity\User;
 use GuzzleHttp\Client;
 use App\Entity\Inventaire;
 use App\Entity\Medicament;
+use App\Entity\Traitement;
 use Symfony\Component\Process\Process;
 use App\Repository\MedicamentRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use App\Command\ImportMedicamentsCommand;
-use App\Entity\Traitement;
 use Symfony\Component\Console\Application;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -77,14 +79,69 @@ class MedicamentController extends AbstractController
         ]);
     }
 
+    #[Route('/api/ajouter-medicament', name: 'api_ajouter_medicament', methods: ['POST'])]
+    public function ajouterMedicamentAPI(Request $request, MedicamentRepository $medicamentRepository, EntityManagerInterface $em): JsonResponse
+    {
+        // Récupérer le code CIP13 de la requête
+        $data = json_decode($request->getContent(), true);
+        $cip13 = $data['cip13'] ?? null;
+
+        if (!$cip13 || !preg_match('/^\d{13}$/', $cip13)) {
+            return new JsonResponse(['error' => 'Code CIP13 invalide'], 400);
+        }
+
+        // Convertir le CIP13 en CIS via l'API GraphQL
+        $cis = $this->queryGraphQL($cip13);
+
+        if (!$cis) {
+            return new JsonResponse(['error' => 'CIS non trouvé pour le CIP13 fourni'], 404);
+        }
+
+        // Rechercher le médicament par CIS
+        $medicament = $medicamentRepository->findOneBy(['codeCIS' => $cis]);
+
+        if (!$medicament) {
+            return new JsonResponse(['error' => 'Médicament non trouvé'], 404);
+        }
+
+        // Utilisateur par défaut (à remplacer par l'utilisateur authentifié)
+        $userId = 1; // Remplacez par l'ID de l'utilisateur authentifié
+        $user = $em->getRepository(User::class)->find($userId);
+
+        if (!$user) {
+            return new JsonResponse(['error' => 'Utilisateur non trouvé'], 404);
+        }
+
+        // Ajouter le médicament à l'inventaire de l'utilisateur
+        $inventaire = $em->getRepository(Inventaire::class)->findOneBy([
+            'user' => $user,
+            'medicament' => $medicament,
+        ]);
+
+        if ($inventaire) {
+            $inventaire->setQuantite($inventaire->getQuantite() + 1); // Incrémenter la quantité
+        } else {
+            $inventaire = new Inventaire();
+            $inventaire->setUser($user);
+            $inventaire->setMedicament($medicament);
+            $inventaire->setNbBoite(1);
+            $inventaire->setQuantite(30); // Définir la quantité initiale
+        }
+
+        $em->persist($inventaire);
+        $em->flush();
+
+        return new JsonResponse(['message' => 'Médicament ajouté à l\'inventaire avec succès'], 200);
+    }
+
     // Méthode pour interroger l'API GraphQL et récupérer le CIS
-    private function queryGraphQL(string $cip7): ?string
+    private function queryGraphQL(string $cip13): ?string
     {
         $client = new Client();
         $query = [
             'query' => '
             query {
-                presentations(CIP: ["' . $cip7 . '"]) {
+                presentations(CIP: ["' . $cip13 . '"]) {
                     CIP13
                     medicament {
                         CIS
