@@ -86,6 +86,7 @@ class MedicamentController extends AbstractController
         $data = json_decode($request->getContent(), true);
         $cip13 = $data['cip13'] ?? null;
         $quantite = $data['quantity'] ?? null;
+        $userId = $data['userId'] ?? null;
 
         if (!$cip13 || !preg_match('/^\d{13}$/', $cip13)) {
             return new JsonResponse(['error' => 'Code CIP13 invalide'], 400);
@@ -106,7 +107,6 @@ class MedicamentController extends AbstractController
         }
 
         // Utilisateur par défaut (à remplacer par l'utilisateur authentifié)
-        $userId = 1; // Remplacez par l'ID de l'utilisateur authentifié
         $user = $em->getRepository(User::class)->find($userId);
 
         if (!$user) {
