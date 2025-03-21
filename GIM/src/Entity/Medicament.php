@@ -7,6 +7,8 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Annotation\Groups;
+
 
 #[ORM\Entity(repositoryClass: MedicamentRepository::class)]
 class Medicament
@@ -14,12 +16,16 @@ class Medicament
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
+    #[Groups(['inventaire'])]
+
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
     private ?string $codeCIS = null;
 
     #[ORM\Column(length: 500)]
+    #[Groups(['inventaire'])]
+
     private ?string $nom = null;
 
     #[ORM\Column(length: 500)]

@@ -3,6 +3,7 @@
 namespace App\Entity;
 
 use App\Repository\InventaireRepository;
+use Symfony\Component\Serializer\Annotation\Groups;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: InventaireRepository::class)]
@@ -11,20 +12,25 @@ class Inventaire
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
+    #[Groups(['inventaire'])]
     private ?int $id = null;
 
     #[ORM\Column]
+    #[Groups(['inventaire'])]
     private ?int $quantite = null;
 
     #[ORM\ManyToOne(targetEntity: "App\Entity\User", inversedBy: "inventaires")]
     #[ORM\JoinColumn(nullable: false)]
+    #[Groups(['inventaire'])]
     private ?User $user = null;
 
     #[ORM\ManyToOne(targetEntity: "App\Entity\Medicament", inversedBy: "inventaires")]
     #[ORM\JoinColumn(nullable: false)]
+    #[Groups(['inventaire'])]
     private ?Medicament $medicament = null;
 
     #[ORM\Column]
+    #[Groups(['inventaire'])]
     private ?int $nbBoite = null;
 
     public function getNbBoite(): ?int
