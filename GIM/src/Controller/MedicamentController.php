@@ -86,7 +86,6 @@ class MedicamentController extends AbstractController
         $data = json_decode($request->getContent(), true);
         $cip13 = $data['cip13'] ?? null;
         $quantite = $data['quantity'] ?? null;
-        $userId = $data['userId'] ?? null;
 
         if (!$cip13 || !preg_match('/^\d{13}$/', $cip13)) {
             return new JsonResponse(['error' => 'Code CIP13 invalide'], 400);
@@ -106,8 +105,8 @@ class MedicamentController extends AbstractController
             return new JsonResponse(['error' => 'Médicament non trouvé'], 404);
         }
 
-        // Utilisateur par défaut (à remplacer par l'utilisateur authentifié)
-        $user = $em->getRepository(User::class)->find($userId);
+        // Utilisateur authentifié
+        $user = $this->getUser();
 
         if (!$user) {
             return new JsonResponse(['error' => 'Utilisateur non trouvé'], 404);
@@ -134,6 +133,7 @@ class MedicamentController extends AbstractController
 
         return new JsonResponse(['message' => 'Médicament ajouté à l\'inventaire avec succès'], 200);
     }
+
 
     // Méthode pour interroger l'API GraphQL et récupérer le CIS
     private function queryGraphQL(string $cip13): ?string

@@ -1,9 +1,11 @@
 <?php
 
+
 namespace App\Controller;
 
 use App\Entity\User;
 use Doctrine\ORM\EntityManagerInterface;
+use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -14,13 +16,14 @@ class ApiController extends AbstractController
 {
     private $passwordHasher;
     private $entityManager;
+    private $JWTManager;
 
-    public function __construct(UserPasswordHasherInterface $passwordHasher, EntityManagerInterface $entityManager)
+    public function __construct(UserPasswordHasherInterface $passwordHasher, EntityManagerInterface $entityManager, JWTTokenManagerInterface $JWTManager)
     {
         $this->passwordHasher = $passwordHasher;
         $this->entityManager = $entityManager;
+        $this->JWTManager = $JWTManager;
     }
-
 
     #[Route('/api/login', name: 'api_login', methods: ['POST'])]
     public function login(Request $request): JsonResponse
@@ -42,7 +45,9 @@ class ApiController extends AbstractController
             return new JsonResponse(['error' => 'Invalid credentials'], JsonResponse::HTTP_UNAUTHORIZED);
         }
 
-        // Return user ID or other necessary information
-        return new JsonResponse(['id' => $user->getId()]);
+        // Générer un JWT pour l'utilisateur
+        $token = $this->JWTManager->create($user);
+
+        return new JsonResponse(['token' => $token]);
     }
 }

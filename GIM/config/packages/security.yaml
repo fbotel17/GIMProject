@@ -7,6 +7,10 @@ security:
       id: App\Security\CustomUserProvider
 
   firewalls:
+    api:
+      pattern: ^/api
+      stateless: true
+      jwt: ~
     dev:
       pattern: ^/(_(profiler|wdt)|css|images|js)/
       security: false
@@ -26,4 +30,4 @@ security:
   access_control:
     - { path: ^/admin, roles: ROLE_ADMIN }
     - { path: ^/delete-medicaments, roles: ROLE_ADMIN }
-    - { path: ^/api/login2, roles: PUBLIC_ACCESS }
+    - { path: ^/api/login, roles: PUBLIC_ACCESS }
