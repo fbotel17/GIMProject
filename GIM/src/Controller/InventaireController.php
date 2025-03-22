@@ -159,6 +159,30 @@ class InventaireController extends AbstractController
         return new JsonResponse(['error' => 'Quantité invalide ou médicament introuvable.'], JsonResponse::HTTP_BAD_REQUEST);
     }
 
+    #[Route('/api/inventaire/search', name: 'api_search_inventaire', methods: ['GET'])]
+    public function searchInventaire(Request $request, InventaireRepository $inventaireRepository, UserInterface $user, SerializerInterface $serializer): JsonResponse
+    {
+        $nom = $request->query->get('nom');
+        if (!$nom) {
+            return new JsonResponse(['error' => 'Le paramètre "nom" est requis.'], JsonResponse::HTTP_BAD_REQUEST);
+        }
+
+        $inventaire = $inventaireRepository->createQueryBuilder('i')
+            ->join('i.medicament', 'm') // Joindre l'entité Medicament
+            ->where('i.user = :user')
+            ->andWhere('m.nom LIKE :nom')
+            ->setParameter('user', $user)
+            ->setParameter('nom', '%' . $nom . '%')
+            ->getQuery()
+            ->getResult();
+
+        $jsonContent = $serializer->serialize($inventaire, 'json', ['groups' => 'inventaire']);
+
+        return new JsonResponse($jsonContent, JsonResponse::HTTP_OK, [], true);
+    }
+
+
+
 
 
 }
