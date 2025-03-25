@@ -51,21 +51,21 @@
 				<div class="modal-body">
 					<form action="{{ path('medicament_ajouter', { 'id': medicament.id }) }}" method="post">
 						<div class="mb-3">
-							<label for="typeAjout" class="form-label">Type d'ajout</label>
-							<select class="form-select" id="typeAjout" name="typeAjout" required>
+							<label for="typeAjout-{{ medicament.id }}" class="form-label">Type d'ajout</label>
+							<select class="form-select typeAjout" id="typeAjout-{{ medicament.id }}" name="typeAjout" required>
 								<option value="boites_pleines">Boîtes pleines</option>
 								<option value="boite_entamee">Boîte entamée</option>
 							</select>
 						</div>
-						<div id="boitesPleines" class="mb-3">
-							<label for="nbBoitesPleines" class="form-label">Nombre de boîtes pleines</label>
-							<input type="number" class="form-control" id="nbBoitesPleines" name="nbBoitesPleines" min="0" placeholder="Entrez le nombre de boîtes pleines">
-							<label for="pillulesParBoite" class="form-label">Nombre de médicaments par boite pleine</label>
-							<input type="number" class="form-control" id="pillulesParBoite" name="pillulesParBoite" min="1" placeholder="Entrez le nombre de pillules par boîte pleine">
+						<div id="boitesPleines-{{ medicament.id }}" class="mb-3 boitesPleines">
+							<label for="nbBoitesPleines-{{ medicament.id }}" class="form-label">Nombre de boîtes pleines</label>
+							<input type="number" class="form-control" id="nbBoitesPleines-{{ medicament.id }}" name="nbBoitesPleines" min="0" placeholder="Entrez le nombre de boîtes pleines">
+							<label for="pillulesParBoite-{{ medicament.id }}" class="form-label">Nombre de médicaments par boite pleine</label>
+							<input type="number" class="form-control" id="pillulesParBoite-{{ medicament.id }}" name="pillulesParBoite" min="1" placeholder="Entrez le nombre de pillules par boîte pleine">
 						</div>
-						<div id="boiteEntamee" class="mb-3" style="display:none;">
-							<label for="quantitePillules" class="form-label">Quantité de médicaments dans la boîte entamée</label>
-							<input type="number" class="form-control" id="quantitePillules" name="quantitePillules" min="1" placeholder="Entrez la quantité de médicaments">
+						<div id="boiteEntamee-{{ medicament.id }}" class="mb-3 boiteEntamee" style="display:none;">
+							<label for="quantitePillules-{{ medicament.id }}" class="form-label">Quantité de médicaments dans la boîte entamée</label>
+							<input type="number" class="form-control" id="quantitePillules-{{ medicament.id }}" name="quantitePillules" min="1" placeholder="Entrez la quantité de médicaments">
 						</div>
 						<button type="submit" class="btn btn-primary">Ajouter à l'inventaire</button>
 					</form>
@@ -76,15 +76,18 @@
 {% endfor %}
 
 <script>
-	document.getElementById('typeAjout').addEventListener('change', function () {
-var boitesPleines = document.getElementById('boitesPleines');
-var boiteEntamee = document.getElementById('boiteEntamee');
-if (this.value === 'boitesPleines') {
+	document.querySelectorAll('.typeAjout').forEach(function (selectElement) {
+selectElement.addEventListener('change', function () {
+var medicamentId = this.id.split('-')[1];
+var boitesPleines = document.getElementById('boitesPleines-' + medicamentId);
+var boiteEntamee = document.getElementById('boiteEntamee-' + medicamentId);
+if (this.value === 'boites_pleines') {
 boitesPleines.style.display = 'block';
 boiteEntamee.style.display = 'none';
 } else {
 boitesPleines.style.display = 'none';
 boiteEntamee.style.display = 'block';
 }
+});
 });
 </script>
