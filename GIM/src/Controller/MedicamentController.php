@@ -120,6 +120,7 @@ class MedicamentController extends AbstractController
 
         if ($inventaire) {
             $inventaire->setQuantite($inventaire->getQuantite() + $quantite); // Incrémenter la quantité
+            $inventaire->setNbBoite($inventaire->getNbBoite() + 1);
         } else {
             $inventaire = new Inventaire();
             $inventaire->setUser($user);
