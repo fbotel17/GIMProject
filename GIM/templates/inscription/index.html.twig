@@ -5,37 +5,54 @@
 
 {% block body %}
 	<div class="container mt-5">
-		<h1 class="text-center">Inscription</h1>
+		<h1 class="text-center mb-4">Inscription</h1>
 
 		<div class="row justify-content-center">
-			<div class="col-md-6">
-				{{ form_start(form) }}
-				<div class="mb-3">
-					{{ form_label(form.nom) }}
-					{{ form_widget(form.nom, {'attr': {'class': 'form-control'}}) }}
+			<div class="col-md-6 col-lg-4">
+				<div class="card shadow-sm">
+					<div class="card-body">
+						{{ form_start(form) }}
+						<div class="mb-3">
+							{{ form_label(form.nom) }}
+							{{ form_widget(form.nom, {'attr': {'class': 'form-control'}}) }}
+						</div>
+						<div class="mb-3">
+							{{ form_label(form.prenom) }}
+							{{ form_widget(form.prenom, {'attr': {'class': 'form-control'}}) }}
+						</div>
+						<div class="mb-3">
+							{{ form_label(form.username) }}
+							{{ form_widget(form.username, {'attr': {'class': 'form-control'}}) }}
+						</div>
+						<div class="mb-3">
+							{{ form_label(form.email) }}
+							{{ form_widget(form.email, {'attr': {'class': 'form-control'}}) }}
+						</div>
+						<div class="mb-3">
+							{{ form_label(form.dateNaissance) }}
+							{{ form_widget(form.dateNaissance, {'attr': {'class': 'form-control'}}) }}
+						</div>
+						<div class="mb-3">
+							{{ form_label(form.password) }}
+							{{ form_widget(form.password, {'attr': {'class': 'form-control'}}) }}
+						</div>
+
+						<button type="submit" class="btn btn-primary w-100 mb-3">
+							<i class="fas fa-user-plus mr-2"></i>
+							S'inscrire
+						</button>
+
+						<div class="text-center mb-3">
+							<p>Ou inscrivez-vous avec</p>
+							<a href="{{ path('connect_google_start') }}" class="btn btn-outline-danger btn-block d-flex justify-content-center align-items-center">
+								<i class="fab fa-google mr-2"></i>
+								Google
+							</a>
+						</div>
+
+						{{ form_end(form) }}
+					</div>
 				</div>
-				<div class="mb-3">
-					{{ form_label(form.prenom) }}
-					{{ form_widget(form.prenom, {'attr': {'class': 'form-control'}}) }}
-				</div>
-				<div class="mb-3">
-					{{ form_label(form.username) }}
-					{{ form_widget(form.username, {'attr': {'class': 'form-control'}}) }}
-				</div>
-				<div class="mb-3">
-					{{ form_label(form.email) }}
-					{{ form_widget(form.email, {'attr': {'class': 'form-control'}}) }}
-				</div>
-				<div class="mb-3">
-					{{ form_label(form.dateNaissance) }}
-					{{ form_widget(form.dateNaissance, {'attr': {'class': 'form-control'}}) }}
-				</div>
-				<div class="mb-3">
-					{{ form_label(form.password) }}
-					{{ form_widget(form.password, {'attr': {'class': 'form-control'}}) }}
-				</div>
-				<button type="submit" class="btn btn-primary w-100">S'inscrire</button>
-				{{ form_end(form) }}
 			</div>
 		</div>
 	</div>

@@ -1,8 +1,61 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Accueil
+{% block title %}Bienvenue sur GIV
 {% endblock %}
 
 {% block body %}
-	<h1>Bienvenue sur la page d'accueil</h1>
+	<div class="container mt-5">
+		<div class="row justify-content-center">
+			<div class="col-md-8 text-center">
+				<h1 class="mb-4">Bienvenue sur GIV</h1>
+				<p class="lead">
+					GIV (Gestion d'Inventaire de Médicaments) est l'application conçue pour vous simplifier la gestion de vos médicaments et de vos traitements au quotidien.
+				</p>
+				<p>
+					Grâce à GIV, vous pouvez suivre facilement l'inventaire de vos médicaments, ne plus oublier vos renouvellements et être alerté à l'avance quand il est temps de vous rendre à la pharmacie.
+				</p>
+				<div class="mt-4">
+					<a href="{{ path('app_medicament') }}" class="btn btn-primary btn-lg m-2">Liste des Médicaments</a>
+					<a href="{{ path('app_inventaire') }}" class="btn btn-primary btn-lg m-2">Mon Inventaire</a>
+					<a href="{{ path('app_traitement') }}" class="btn btn-primary btn-lg m-2">Mes Traitements</a>
+				</div>
+			</div>
+		</div>
+
+		<!-- Section "Pourquoi utiliser GIV ?" -->
+		<div class="row justify-content-center mt-5">
+			<div class="col-md-10">
+				<h2 class="text-center mb-4">Pourquoi utiliser GIV ?</h2>
+				<div class="row">
+					<div class="col-md-4 mb-4">
+						<div class="card shadow-sm border-light">
+							<div class="card-body text-center">
+								<i class="fas fa-medkit fa-3x text-primary mb-3"></i>
+								<h4>Suivi Simplifié</h4>
+								<p>Gérez facilement l'inventaire de vos médicaments et suivez vos traitements à tout moment, où que vous soyez.</p>
+							</div>
+						</div>
+					</div>
+					<div class="col-md-4 mb-4">
+						<div class="card shadow-sm border-light">
+							<div class="card-body text-center">
+								<i class="fas fa-bell fa-3x text-primary mb-3"></i>
+								<h4>Alerte Renouvellement</h4>
+								<p>Recevez des notifications avant la fin de vos médicaments pour ne jamais manquer un renouvellement.</p>
+							</div>
+						</div>
+					</div>
+					<div class="col-md-4 mb-4">
+						<div class="card shadow-sm border-light">
+							<div class="card-body text-center">
+								<i class="fas fa-qrcode fa-3x text-primary mb-3"></i>
+								<h4>Ajout Facile</h4>
+								<p>Ajoutez vos médicaments en scannant simplement leur code-barres pour une gestion rapide et sans erreur.</p>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
 {% endblock %}
