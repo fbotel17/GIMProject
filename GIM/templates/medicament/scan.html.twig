@@ -1,0 +1,163 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}DataMatrix Scanner
+{% endblock %}
+
+{% block body %}
+	<div class="scan-container">
+		<h2>Scanner votre DataMatrix</h2>
+		<div id="camera-container">
+			<video id="video"></video>
+		</div>
+		<div id="quantity-form">
+			<label for="quantity">Quantité :</label>
+			<input type="number" id="quantity" name="quantity" min="1" required>
+			<button id="submit-quantity">Ajouter</button>
+		</div>
+	</div>
+
+	<script src="https://unpkg.com/@zxing/library@latest"></script>
+	<script>
+		document.addEventListener("DOMContentLoaded", async function () {
+const codeReader = new ZXing.BrowserDatamatrixCodeReader();
+const videoElement = document.getElementById("video");
+const quantityForm = document.getElementById("quantity-form");
+const submitButton = document.getElementById("submit-quantity");
+let detectedCode = null;
+
+try {
+const videoInputDevices = await codeReader.getVideoInputDevices();
+if (videoInputDevices.length === 0) {
+alert("Aucune caméra détectée.");
+return;
+}
+
+const selectedDeviceId = videoInputDevices[0].deviceId;
+codeReader.decodeFromInputVideoDevice(selectedDeviceId, videoElement).then((result) => {
+detectedCode = result.text;
+console.log("DataMatrix détecté:", detectedCode);
+handleDataMatrixDetection(detectedCode);
+}).catch((err) => {
+console.error("Erreur de lecture:", err);
+});
+} catch (err) {
+console.error("Erreur d'accès aux caméras:", err);
+}
+
+function handleDataMatrixDetection(code) {
+const regex = /34\d{11}/;
+const match = code.match(regex);
+
+if (match) {
+const pcCode = match[0];
+console.log("Code PC extrait:", pcCode);
+quantityForm.style.display = 'flex';
+
+// Supprimer les anciens événements avant d’en ajouter un nouveau
+submitButton.replaceWith(submitButton.cloneNode(true));
+document.getElementById("submit-quantity").addEventListener('click', function () {
+const quantity = document.getElementById("quantity").value;
+if (quantity > 0) {
+sendDataToServer(pcCode, quantity);
+} else {
+alert("Veuillez entrer une quantité valide.");
+}
+});
+} else {
+console.log("Code PC non trouvé.");
+quantityForm.style.display = 'none';
+}
+}
+
+function sendDataToServer(cip13, quantity) {
+fetch('/scan-medicament', {
+method: 'POST',
+headers: {
+'Content-Type': 'application/json',
+'X-Requested-With': 'XMLHttpRequest'
+},
+body: JSON.stringify(
+{cip13: cip13, quantity: quantity}
+)
+}).then(response => response.json()).then(data => {
+if (data.success) {
+alert('Médicament ajouté avec succès.');
+quantityForm.style.display = 'none';
+} else {
+alert('Erreur: ' + data.error);
+}
+}).catch(error => console.error("Erreur lors de l'envoi des données:", error));
+}
+});
+	</script>
+
+	<style>
+		.scan-container {
+			text-align: center;
+			padding: 20px;
+		}
+
+		h2 {
+			font-size: 1.5rem;
+			margin-bottom: 15px;
+			color: #333;
+		}
+
+		#camera-container {
+			display: flex;
+			justify-content: center;
+			margin-bottom: 20px;
+		}
+
+		#video {
+			width: 650px;
+			height: auto;
+			border-radius: 10px;
+			box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+		}
+
+		#quantity-form {
+			display: none;
+			flex-direction: column;
+			align-items: center;
+			gap: 10px;
+			background: #f8f8f8;
+			padding: 15px;
+			border-radius: 10px;
+			box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+			width: 80%;
+			max-width: 300px;
+			margin: 0 auto;
+		}
+
+		label {
+			font-weight: bold;
+			color: #555;
+		}
+
+		input {
+			width: 100%;
+			padding: 8px;
+			border: 1px solid #ddd;
+			border-radius: 5px;
+			font-size: 1rem;
+			text-align: center;
+		}
+
+		button {
+			background: #007bff;
+			color: white;
+			border: none;
+			padding: 10px;
+			border-radius: 5px;
+			cursor: pointer;
+			font-size: 1rem;
+			transition: background 0.3s;
+			width: 100%;
+		}
+
+		button:hover {
+			background: #0056b3;
+		}
+	</style>
+{% endblock %}

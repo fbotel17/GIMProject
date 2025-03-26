@@ -21,8 +21,11 @@ use Symfony\Component\HttpKernel\KernelInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Console\Tester\CommandTester;
 use Symfony\Component\Console\Output\BufferedOutput;
+use Symfony\Component\String\Slugger\SluggerInterface;
+use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\File\Exception\FileException;
 
 class MedicamentController extends AbstractController
 {
@@ -332,4 +335,86 @@ class MedicamentController extends AbstractController
 
         return $this->redirectToRoute('app_medicament');
     }
+
+
+    #[Route('/scan-medicament', name: 'scan_medicament', methods: ['GET', 'POST'])]
+    public function scanMedicament(Request $request, MedicamentRepository $medicamentRepository, EntityManagerInterface $em): Response
+    {
+        if ($request->isMethod('POST')) {
+            $data = json_decode($request->getContent(), true);
+            $cip13 = $data['cip13'] ?? null;
+            $quantite = $data['quantity'] ?? null;
+
+            if (!$cip13 || !preg_match('/^\d{13}$/', $cip13)) {
+                return new JsonResponse(['error' => 'Code CIP13 invalide'], 400);
+            }
+
+            // Convertir le CIP13 en CIS via l'API GraphQL
+            $cis = $this->queryGraphQL($cip13);
+
+            if (!$cis) {
+                return new JsonResponse(['error' => 'CIS non trouvé pour le CIP13 fourni'], 404);
+            }
+
+            // Rechercher le médicament par CIS
+            $medicament = $medicamentRepository->findOneBy(['codeCIS' => $cis]);
+
+            if (!$medicament) {
+                return new JsonResponse(['error' => 'Médicament non trouvé'], 404);
+            }
+
+            // Utilisateur authentifié
+            $user = $this->getUser();
+
+            if (!$user) {
+                return new JsonResponse(['error' => 'Utilisateur non trouvé'], 404);
+            }
+
+            // Ajouter le médicament à l'inventaire de l'utilisateur
+            return $this->ajouterInventaireFromScan($medicament->getId(), $request, $medicamentRepository, $em, $user, $quantite);
+        }
+
+        return $this->render('medicament/scan.html.twig');
+    }
+
+    private function ajouterInventaireFromScan(int $id, Request $request, MedicamentRepository $medicamentRepository, EntityManagerInterface $em, UserInterface $user, int $quantite): JsonResponse
+    {
+        $medicament = $medicamentRepository->find($id);
+
+        if (!$medicament) {
+            return new JsonResponse(['error' => 'Médicament non trouvé.'], 404);
+        }
+
+        $inventaire = $em->getRepository(Inventaire::class)->findOneBy([
+            'user' => $user,
+            'medicament' => $medicament,
+        ]);
+
+        if ($inventaire) {
+            $inventaire->setQuantite($inventaire->getQuantite() + $quantite);
+            $inventaire->setNbBoite($inventaire->getNbBoite() + 1);
+        } else {
+            $inventaire = new Inventaire();
+            $inventaire->setUser($user);
+            $inventaire->setMedicament($medicament);
+            $inventaire->setQuantite($quantite);
+            $inventaire->setNbBoite(1);
+        }
+
+        $em->persist($inventaire);
+        $em->flush();
+
+        return new JsonResponse(['message' => 'Médicament ajouté à l\'inventaire avec succès'], 200);
+    }
+
+
+    private function extractCIP13FromImage(string $filename): ?string
+    {
+        // Implémentez ici la logique pour extraire le code CIP13 de l'image
+        // Vous pouvez utiliser une bibliothèque de reconnaissance optique de caractères (OCR) comme Tesseract
+        // Pour cet exemple, nous retournons simplement un code CIP13 fictif
+        return '1234567890123';
+    }
+
+
 }
