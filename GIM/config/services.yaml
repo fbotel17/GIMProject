@@ -22,3 +22,11 @@ services:
   App\Security\CustomUserProvider:
         arguments:
             $entityManager: '@doctrine.orm.entity_manager'
+
+  App\Security\GoogleAuthenticator:
+        arguments:
+            $clientRegistry: '@knpu.oauth2.registry'
+            $entityManager: '@doctrine.orm.entity_manager'
+            $passwordHasher: '@Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface'
+            $urlGenerator: '@router'
+
